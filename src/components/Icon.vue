@@ -1,0 +1,32 @@
+<template>
+  <div :style="{height: size}">
+    <svg class="icon" xmlns="http://www.w3.org/2000/svg" :fill="data.color" :width="size" :height="size" viewBox="0 0 24 24">
+      <path :d="data.path"></path>
+    </svg>
+  </div>
+</template>
+
+<style scoped>
+  .icon { margin-right: 5px; }
+</style>
+
+<script>
+  export default {
+    props: ["image", "large"],
+    computed: {
+      size() {
+        return this.large ? "24px" : "16px"
+      },
+      data() {
+        switch (this.image.toLowerCase()) {
+          case "inbox": return {color: "#40a3f0", path: "M21 0h-18l-3 13 2 11h20l2-11-3-13zm-16.409 2h14.818l2.308 10h-4.717l-2.25 3h-5.5l-2.25-3h-4.7170000000000005l2.308-10z"};
+          case "today": return {color:"#fbcd43", path: "M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"};
+          case "upcoming": return {color: "#f73264", path: "M20 20h-4v-4h4v4zm-6-10h-4v4h4v-4zm6 0h-4v4h4v-4zm-12 6h-4v4h4v-4zm6 0h-4v4h4v-4zm-6-6h-4v4h4v-4zm16-8v22h-24v-22h3v1c0 1.103.897 2 2 2s2-.897 2-2v-1h10v1c0 1.103.897 2 2 2s2-.897 2-2v-1h3zm-2 6h-20v14h20v-14zm-2-7c0-.552-.447-1-1-1s-1 .448-1 1v2c0 .552.447 1 1 1s1-.448 1-1v-2zm-14 2c0 .552-.447 1-1 1s-1-.448-1-1v-2c0-.552.447-1 1-1s1 .448 1 1v2z"};
+          case "anytime": return {color: "#3ba59b", path: "M21.698 10.658l2.302 1.342-12.002 7-11.998-7 2.301-1.342 9.697 5.658 9.7-5.658zm-9.7 10.657l-9.697-5.658-2.301 1.343 11.998 7 12.002-7-2.302-1.342-9.7 5.657zm12.002-14.315l-12.002-7-11.998 7 11.998 7 12.002-7z"};
+          case "someday": return {color: "#d2bd82", path: "M1.8 9l-.8-4h22l-.8 4h-2.029l.39-2h-17.122l.414 2h-2.053zm18.575-6l.604-2h-17.979l.688 2h16.687zm3.625 8l-2 13h-20l-2-13h24zm-8 4c0-.552-.447-1-1-1h-6c-.553 0-1 .448-1 1s.447 1 1 1h6c.553 0 1-.448 1-1z"};
+          default: return {color: "black", path: "M22 2v22h-20v-22h3c1.23 0 2.181-1.084 3-2h8c.82.916 1.771 2 3 2h3zm-11 1c0 .552.448 1 1 1 .553 0 1-.448 1-1s-.447-1-1-1c-.552 0-1 .448-1 1zm9 1h-4l-2 2h-3.897l-2.103-2h-4v18h16v-18zm-13 9.729l.855-.791c1 .484 1.635.852 2.76 1.654 2.113-2.399 3.511-3.616 6.106-5.231l.279.64c-2.141 1.869-3.709 3.949-5.967 7.999-1.393-1.64-2.322-2.686-4.033-4.271z"}
+        }
+      },
+    },
+  }
+</script>
