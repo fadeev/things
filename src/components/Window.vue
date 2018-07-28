@@ -6,9 +6,12 @@
           <Icon image="inbox"></Icon>
           <span>Inbox</span>
         </router-link>
+      </div>
+      <div class="list">
         <router-link to="/today" tag="div" class="item">
           <Icon image="today"></Icon>
           <span>Today</span>
+          <span class="count">{{count}}</span>
         </router-link>
         <router-link to="/upcoming" tag="div" class="item">
           <Icon image="upcoming"></Icon>
@@ -23,37 +26,38 @@
           <span>Someday</span>
         </router-link>
       </div>
-      <div class="toolbar">
-        <div class="button">
+      <div class="list">
+        <transition-group name="fade-in">
+          <router-link :to="`/project/${project.uuid}`" tag="div" :ref="`project-${project.uuid}`" class="item" v-for="project in projects" :key="project.uuid">
+            <Icon image="project"></Icon>
+            <span>{{project.name || "New Project"}}</span>
+          </router-link>
+        </transition-group>
+      </div>
+      <div class="list">
+        <transition-group name="fade-in">
+          <router-link :to="`/area/${area.uuid}`" tag="div" :ref="`area-${area.uuid}`" class="item" v-for="area in areas" :key="area.uuid">
+            <Icon image="area"></Icon>
+            <span>{{area.name || "New Area"}}</span>
+          </router-link>
+        </transition-group>
+      </div>
+    </div>
+    <div :class="{main: true, white: white}" @click="deselect">
+      <div class="workspace">
+        <router-view :key="$route.fullPath" ref="folder"></router-view>
+      </div>
+    </div>
+    <div class="toolbar">
+      <div class="left">
+        <div class="button" @click="projectCreate">
           <svg xmlns="http://www.w3.org/2000/svg" fill="gray" width="16" height="16" viewBox="0 0 24 24"><path d="M24 10h-10v-10h-4v10h-10v4h10v10h4v-10h10z"/></svg>
         </div>
         <div class="button">
           <svg xmlns="http://www.w3.org/2000/svg" fill="gray" width="16" height="16" viewBox="0 0 24 24"><path d="M12 9c.552 0 1 .449 1 1s-.448 1-1 1-1-.449-1-1 .448-1 1-1zm0-2c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3zm-9 4c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3zm18 0c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3zm-9-6c.343 0 .677.035 1 .101v-3.101c0-.552-.447-1-1-1s-1 .448-1 1v3.101c.323-.066.657-.101 1-.101zm9 4c.343 0 .677.035 1 .101v-7.101c0-.552-.447-1-1-1s-1 .448-1 1v7.101c.323-.066.657-.101 1-.101zm0 10c-.343 0-.677-.035-1-.101v3.101c0 .552.447 1 1 1s1-.448 1-1v-3.101c-.323.066-.657.101-1 .101zm-18-10c.343 0 .677.035 1 .101v-7.101c0-.552-.447-1-1-1s-1 .448-1 1v7.101c.323-.066.657-.101 1-.101zm9 6c-.343 0-.677-.035-1-.101v7.101c0 .552.447 1 1 1s1-.448 1-1v-7.101c-.323.066-.657.101-1 .101zm-9 4c-.343 0-.677-.035-1-.101v3.101c0 .552.447 1 1 1s1-.448 1-1v-3.101c-.323.066-.657.101-1 .101z"/></svg>
         </div>
       </div>
-    </div>
-    <div class="main">
-      <div class="workspace">
-        <router-view :key="$route.fullPath"></router-view>
-        <!-- <div class="title">
-          <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="#fbcd43" width="24" height="24" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"/></svg>
-          <span>Today</span>
-        </div>
-        <div class="timeline">
-          <div>08:30 Quora</div>
-          <div>11:00 Marketing</div>
-          <div>12:00 FlashSticks</div>
-          <div>18:00 Scott Woods</div>
-        </div>
-        <div class="tags">
-          <div class="tag selected">All</div>
-          <div class="tag" v-for="tag in $store.state.tags" :key="tag">
-            {{tag}}
-          </div>
-        </div>
-        <TodoNew :selected="todo.uuid == selected" @select="select" :data="todo" :ref="todo.uuid" v-for="(todo, index) in $store.state.todos" :key="index"></TodoNew>
-      </div>
-      <div class="toolbar">
+      <div class="right">
         <div class="button" @click="todoCreate">
           <svg xmlns="http://www.w3.org/2000/svg" fill="gray" width="16" height="16" viewBox="0 0 24 24"><path d="M24 10h-10v-10h-4v10h-10v4h10v10h4v-10h10z"/></svg>
         </div>
@@ -65,27 +69,19 @@
         </div>
         <div class="button">
           <svg xmlns="http://www.w3.org/2000/svg" fill="gray" width="16" height="16" viewBox="0 0 24 24"><path d="M23.809 21.646l-6.205-6.205c1.167-1.605 1.857-3.579 1.857-5.711 0-5.365-4.365-9.73-9.731-9.73-5.365 0-9.73 4.365-9.73 9.73 0 5.366 4.365 9.73 9.73 9.73 2.034 0 3.923-.627 5.487-1.698l6.238 6.238 2.354-2.354zm-20.955-11.916c0-3.792 3.085-6.877 6.877-6.877s6.877 3.085 6.877 6.877-3.085 6.877-6.877 6.877c-3.793 0-6.877-3.085-6.877-6.877z"/></svg>
-        </div> -->
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-  .window { display: flex; height: 100vh; font-family: "Roboto", sans-serif; color: rgba(0,0,0,.8); }
-  .sidebar { background: rgba(0,0,0,.05); flex-basis: 250px; display: flex; flex-direction: column; justify-content: space-between; }
-  .toolbar { align-items: center; height: 25px; padding: 10px 20px; border-top: 1px solid rgba(0,0,0,.1); color: rgba(0,0,0,.75); }
-  .sidebar .toolbar { display: flex; justify-content: space-between; }
+  .window { display: flex; height: 100vh; font-weight: 400; font-family: "Roboto", sans-serif; color: rgba(0,0,0,.75); }
+  .sidebar { background: #f5f6f7; width: 250px; overflow: hidden; }
   .sidebar .list { margin: 20px; }
-  .sidebar .list .item { cursor: pointer; user-select: none; margin-bottom: 10px; display: flex; align-items: center; }
-  .main { background: rgba(0,0,0,.02); display: flex; flex-direction: column; justify-content: space-between; flex-grow: 1; }
-  .toolbar { display: flex; justify-content: center; }
-  .toolbar .button { display: flex; }
-  .main .toolbar .button { display: flex; padding: 5px 40px; border: 1px solid rgba(0,0,0,0); }
-  .main .toolbar .button:hover { border-color: rgba(0,0,0,.1); border-radius: 4px; }
-  .main .toolbar .button:active { background: rgba(0,0,0,.1); border-color: transparent; }
+  .sidebar .list .item { overflow: hidden; border-radius: 5px; padding: 5px; cursor: pointer; user-select: none; margin-bottom: 5px; display: flex; align-items: center; }
+  .main { transition: background .5s; overflow-y: scroll; background: rgb(251, 250, 251); display: flex; flex-direction: column; justify-content: space-between; flex-grow: 1; }
   .workspace { padding-top: 60px; }
-  /* .workspace > * { margin: 0 60px 20px; } */
   .workspace > .new { margin-left: 40px; margin-right: 40px; margin-bottom: 0; }
   .workspace > .new.full { margin-bottom: 20px; }
   .main .title { font-size: 1.5em; font-weight: bold; display: flex; align-items: center; }
@@ -98,30 +94,67 @@
   .icon { margin-right: 5px; }
   .row.title  { margin: 0 60px 30px; font-size: 1.5em; font-weight: bold; display: flex; align-items: center; }
   .icon { margin-right: 5px; }
+
+  .count { font-weight: bold; color: rgba(0,0,0,.5); margin-left: auto; margin-right: 5px; }
+
+  .router-link-exact-active { background: rgba(0,0,0,.05); }
+
+  .toolbar { position: fixed; bottom: 0; left: 0; right: 0; display: flex; border-top: 1px solid rgba(0,0,0,.1); }
+  .toolbar .button { cursor: pointer; }
+  .toolbar .left { flex-shrink: 0; align-items: center; display: flex; flex-basis: 250px; padding: 10px 25px; box-sizing: border-box; flex-direction: row; justify-content: space-between; }
+  .toolbar .right { background: rgba(255,255,255,.85); align-items: center; display: flex; flex-grow: 1; flex-direction: row; box-sizing: border-box; justify-content: center; }
+  .toolbar .right .button { padding: 5px 40px; }
+  .toolbar .right .button:hover { border-color: rgba(0,0,0,.1); border-radius: 4px; }
+  .toolbar .right .button:active { background: rgba(0,0,0,.1); border-color: transparent; }
+
+  .fade-in-enter-active { transition: opacity .5s; }
+  .fade-in-enter { opacity: 0; }
+  .fade-in-enter-to { opacity: 1; }
+  .white { background: white; }
 </style>
 
 <script>
-  import { store } from "../store.js"
   import TodoNew from "./TodoNew.vue"
   import Icon from "./Icon.vue"
+
+  import { EventBus } from "../event-bus.js"
 
   export default {
     components: { TodoNew, Icon },
     data() {
       return {
-        selected: null,
+        white: true,
       }
     },
+    mounted() {
+      EventBus.$on("whiteUpdate", bool => {
+        this.white = bool
+      })
+    },
     methods: {
+      deselect() {
+        this.$refs['folder'].deselect()
+      },
       todoCreate() {
-        store.dispatch("todoCreate").then((uuid) => {
+        this.$refs["folder"].todoCreate()
+      },
+      projectCreate() {
+        this.$store.dispatch("projectCreate").then(uuid => {
           this.$nextTick(() => {
-            console.log(this.$refs[uuid][0].fullToggle())
+            this.$router.push(`/project/${uuid}`)
           })
         })
       },
-      select(e) {
-        this.selected = e
+    },
+    computed: {
+      count() {
+        return this.$store.getters.todoFolder("Today").length
+      },
+      projects() {
+        return this.$store.state.projects;
+      },
+      areas() {
+        return this.$store.state.areas
       },
     },
   }
