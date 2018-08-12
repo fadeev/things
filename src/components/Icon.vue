@@ -1,6 +1,6 @@
 <template>
   <div :style="{height: size}">
-    <svg class="icon" xmlns="http://www.w3.org/2000/svg" :fill="data.color" :width="size" :height="size" viewBox="0 0 24 24">
+    <svg class="icon" xmlns="http://www.w3.org/2000/svg" :fill="color ? color : data.color" :width="size" :height="size" viewBox="0 0 24 24">
       <path :d="data.path"></path>
     </svg>
   </div>
@@ -12,7 +12,7 @@
 
 <script>
   export default {
-    props: ["image", "large"],
+    props: ["image", "large", "color"],
     computed: {
       size() {
         return this.large ? "24px" : "16px"

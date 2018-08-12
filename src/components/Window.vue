@@ -1,17 +1,18 @@
 <template>
   <div class="window">
-    <div class="sidebar">
+    <div class="sidebar" id="bloop">
       <div class="list">
         <router-link to="/" tag="div" class="item">
           <Icon image="inbox"></Icon>
           <span>Inbox</span>
+          <span class="count">{{countInbox >= 1 ? countInbox : null}}</span>
         </router-link>
       </div>
       <div class="list">
         <router-link to="/today" tag="div" class="item">
           <Icon image="today"></Icon>
           <span>Today</span>
-          <span class="count">{{count}}</span>
+          <span class="count">{{count >= 1 ? count : null}}</span>
         </router-link>
         <router-link to="/upcoming" tag="div" class="item">
           <Icon image="upcoming"></Icon>
@@ -27,20 +28,26 @@
         </router-link>
       </div>
       <div class="list">
-        <transition-group name="fade-in">
-          <router-link :to="`/project/${project.uuid}`" tag="div" :ref="`project-${project.uuid}`" class="item" v-for="project in projects" :key="project.uuid">
-            <Icon image="project"></Icon>
-            <span>{{project.name || "New Project"}}</span>
-          </router-link>
-        </transition-group>
-      </div>
-      <div class="list">
-        <transition-group name="fade-in">
-          <router-link :to="`/area/${area.uuid}`" tag="div" :ref="`area-${area.uuid}`" class="item" v-for="area in areas" :key="area.uuid">
-            <Icon image="area"></Icon>
-            <span>{{area.name || "New Area"}}</span>
-          </router-link>
-        </transition-group>
+        <Container>
+          <Draggable v-for="area in areas" :key="area.uuid" class="area">
+            <router-link v-if="area.uuid" :to="`/area/${area.uuid}`" tag="div" :ref="`area-${area.uuid}`">
+              <Container @mouseup.native="draggingUpdate(area)" class="item">
+                <Icon image="area"></Icon>
+                <span>{{area.name || "New Area"}}</span>
+              </Container>
+            </router-link>
+            <Container @drag-start="dragStart($event, area.projects)" @drag-end="dragEnd($event)" :get-child-payload="(i) => i">
+              <Draggable v-for="project in area.projects" :key="project.uuid">
+                <router-link :to="`/project/${project.uuid}`" tag="div">
+                  <Container @mouseup.native="draggingUpdate(project)" class="item">
+                    <Icon image="project"></Icon>
+                    <span>{{project.name || "New Project"}}</span>
+                  </Container>
+                </router-link>
+              </Draggable>
+            </Container>
+          </Draggable>
+        </Container>
       </div>
     </div>
     <div :class="{main: true, white: white}" @click="deselect">
@@ -50,8 +57,20 @@
     </div>
     <div class="toolbar">
       <div class="left">
-        <div class="button" @click="projectCreate">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="gray" width="16" height="16" viewBox="0 0 24 24"><path d="M24 10h-10v-10h-4v10h-10v4h10v10h4v-10h10z"/></svg>
+        <div class="button">
+          <svg @click.stop="newListMenuToggle" xmlns="http://www.w3.org/2000/svg" fill="gray" width="16" height="16" viewBox="0 0 24 24"><path d="M24 10h-10v-10h-4v10h-10v4h10v10h4v-10h10z"/></svg>
+          <transition name="fade">
+            <div v-if="newListMenu" class="menu" ref="menu">
+              <div class="item" @click.stop="newListCreate('project')">
+                <Icon image="project" color="white"></Icon>
+                New Project
+              </div>
+              <div class="item" @click.stop="newListCreate('area')">
+                <Icon image="area" color="white"></Icon>
+                New Area
+              </div>
+            </div>
+          </transition>
         </div>
         <div class="button">
           <svg xmlns="http://www.w3.org/2000/svg" fill="gray" width="16" height="16" viewBox="0 0 24 24"><path d="M12 9c.552 0 1 .449 1 1s-.448 1-1 1-1-.449-1-1 .448-1 1-1zm0-2c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3zm-9 4c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3zm18 0c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3zm-9-6c.343 0 .677.035 1 .101v-3.101c0-.552-.447-1-1-1s-1 .448-1 1v3.101c.323-.066.657-.101 1-.101zm9 4c.343 0 .677.035 1 .101v-7.101c0-.552-.447-1-1-1s-1 .448-1 1v7.101c.323-.066.657-.101 1-.101zm0 10c-.343 0-.677-.035-1-.101v3.101c0 .552.447 1 1 1s1-.448 1-1v-3.101c-.323.066-.657.101-1 .101zm-18-10c.343 0 .677.035 1 .101v-7.101c0-.552-.447-1-1-1s-1 .448-1 1v7.101c.323-.066.657-.101 1-.101zm9 6c-.343 0-.677-.035-1-.101v7.101c0 .552.447 1 1 1s1-.448 1-1v-7.101c-.323.066-.657.101-1 .101zm-9 4c-.343 0-.677-.035-1-.101v3.101c0 .552.447 1 1 1s1-.448 1-1v-3.101c-.323.066-.657.101-1 .101z"/></svg>
@@ -76,12 +95,17 @@
 </template>
 
 <style scoped>
+  .area { margin-bottom: 15px; }
+  .menu { transition: all .25s; color: rgba(255,255,255,.9); min-width: 150px; position: absolute; top: -70px; left: 10px; background: #272b35; border-radius: 5px; padding: 5px; }
+  .menu .item { cursor: pointer; display: flex; align-items: center; padding: 3px 5px; border-radius: 2px; }
+  .menu .item:hover { background: #5391f4; }
+
   .window { display: flex; height: 100vh; font-weight: 400; font-family: "Roboto", sans-serif; color: rgba(0,0,0,.75); }
-  .sidebar { background: #f5f6f7; width: 250px; overflow: hidden; }
+  .sidebar { background: rgb(245, 246, 247); width: 250px; flex-shrink: 0; overflow-y: hidden; }
   .sidebar .list { margin: 20px; }
   .sidebar .list .item { overflow: hidden; border-radius: 5px; padding: 5px; cursor: pointer; user-select: none; margin-bottom: 5px; display: flex; align-items: center; }
   .main { transition: background .5s; overflow-y: scroll; background: rgb(251, 250, 251); display: flex; flex-direction: column; justify-content: space-between; flex-grow: 1; }
-  .workspace { padding-top: 60px; }
+  .workspace { margin-bottom: 100px; padding-top: 60px; }
   .workspace > .new { margin-left: 40px; margin-right: 40px; margin-bottom: 0; }
   .workspace > .new.full { margin-bottom: 20px; }
   .main .title { font-size: 1.5em; font-weight: bold; display: flex; align-items: center; }
@@ -101,7 +125,7 @@
 
   .toolbar { position: fixed; bottom: 0; left: 0; right: 0; display: flex; border-top: 1px solid rgba(0,0,0,.1); }
   .toolbar .button { cursor: pointer; }
-  .toolbar .left { flex-shrink: 0; align-items: center; display: flex; flex-basis: 250px; padding: 10px 25px; box-sizing: border-box; flex-direction: row; justify-content: space-between; }
+  .toolbar .left { background: rgba(245, 246, 247, .85); flex-shrink: 0; align-items: center; display: flex; flex-basis: 250px; padding: 10px 25px; box-sizing: border-box; flex-direction: row; justify-content: space-between; }
   .toolbar .right { background: rgba(255,255,255,.85); align-items: center; display: flex; flex-grow: 1; flex-direction: row; box-sizing: border-box; justify-content: center; }
   .toolbar .right .button { padding: 5px 40px; }
   .toolbar .right .button:hover { border-color: rgba(0,0,0,.1); border-radius: 4px; }
@@ -110,20 +134,29 @@
   .fade-in-enter-active { transition: opacity .5s; }
   .fade-in-enter { opacity: 0; }
   .fade-in-enter-to { opacity: 1; }
-  .white { background: white; }
+  .main.white { background: white; }
+
+  .fade-enter { opacity: .8; }
+  .fade-enter-to { opacity: 1; }
+  .fade-leave { opacity: 1; transform: scale(1); }
+  .fade-leave-to { opacity: 0; transform: scale(.95) translateY(2px); }
+
+  .red { background: red}
 </style>
 
 <script>
   import TodoNew from "./TodoNew.vue"
   import Icon from "./Icon.vue"
-
+  import { groupBy, sortBy } from 'lodash'
   import { EventBus } from "../event-bus.js"
+  import { Container, Draggable } from "vue-smooth-dnd";
 
   export default {
-    components: { TodoNew, Icon },
+    components: { TodoNew, Icon, Container, Draggable },
     data() {
       return {
         white: true,
+        newListMenu: null,
       }
     },
     mounted() {
@@ -132,29 +165,67 @@
       })
     },
     methods: {
+      dragStart(event, list) {
+        if (event.isSource) {
+          this.$store.dispatch("draggingCreate", list[event.payload])
+        }
+      },
+      dragEnd(event) {
+        if (this.$store.state.dragging) {
+          this.$store.dispatch("projectUpdate", this.$store.state.dragging).then(() => {
+            this.$store.dispatch("draggingDestroy")
+          })
+        }
+      },
+      draggingUpdate(project) {
+        if (project && project.uuid) {
+          this.$store.dispatch("draggingCreate", {...this.$store.state.dragging, list: project.uuid})
+        }
+      },
       deselect() {
         this.$refs['folder'].deselect()
+        this.newListMenu = false
       },
       todoCreate() {
         this.$refs["folder"].todoCreate()
       },
-      projectCreate() {
-        this.$store.dispatch("projectCreate").then(uuid => {
+      newListCreate(list) {
+        this.newListMenu = false;
+        this.$store.dispatch("listCreate", list).then(uuid => {
           this.$nextTick(() => {
-            this.$router.push(`/project/${uuid}`)
+            this.$router.push(`/${list}/${uuid}`)
           })
         })
+      },
+      newListMenuToggle() {
+        this.newListMenu = !this.newListMenu
       },
     },
     computed: {
       count() {
         return this.$store.getters.todoFolder("Today").length
       },
+      countInbox() {
+        return this.$store.getters.todoFolder("Inbox").length
+      },
       projects() {
         return this.$store.state.projects;
       },
       areas() {
-        return this.$store.state.areas
+        let areas = [...this.$store.state.areas, {uuid: false}]
+        return sortBy(areas.map(area => {
+          let projects = this.$store.state.projects.filter(project => {
+            return (project.list ? project.list : false) == area.uuid
+          })
+          return {...area, projects}
+        }), area => {
+          return area.uuid == false ? 0 : 1
+        })
+        //return groupBy(this.$store.state.projects, "list")
+        // return mapKeys(groupBy(this.$store.state.projects, "list"), (value, key) => {
+        //   let k = find(this.$store.state.areas, {uuid: key})
+        //   return k ? k.name : null
+        // })
       },
     },
   }

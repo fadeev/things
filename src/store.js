@@ -9,6 +9,8 @@ import findIndex from 'lodash/findIndex'
 
 Vue.use(Vuex)
 
+const folders = ["Inbox", "Today", "Upcoming", "Anytime", "Someday"]
+
 export const store = new Vuex.Store({
   strict: true,
   state: {
@@ -17,44 +19,68 @@ export const store = new Vuex.Store({
     todos: [
       {
         name: "Borrow Sarah's travel guide",
+        deadline: "2018-08-20",
+        list: "89",
+        description: "Hello, World!",
+        checklist: [
+          {
+            name: "Buy bread",
+          },
+          {
+            name: "Buy butter",
+          },
+          {
+            name: "Apply butter to bread",
+          },
+        ],
+        tags: ["Home", "Work", "Unicorns"],
+        date: "2018-08-12",
+        uuid: "1000000000000000000000",
+      },
+      {
+        name: "Borrow Sarah's travel guide",
         tags: ["Work"],
         date: "Inbox",
-        deadline: "2018-07-23",
+        deadline: "2018-07-29",
         uuid: "1",
       },
       {
         name: "Finish expense report",
         tags: ["Work", "Hard"],
         date: "Inbox",
+        list: "89",
         uuid: "2",
       },
       {
         name: "Power adapter",
         tags: ["Work", "Hard"],
-        date: "2017-02-02",
+        date: "2018-07-30",
+        list: "510",
         uuid: "4",
       },
       {
         name: "Take a day trip",
         tags: ["Work", "Hard"],
-        date: "Someday",
+        date: "2018-07-30",
         uuid: "5",
       },
       {
         name: "Take a cooking class",
         tags: ["Work", "Hard"],
-        date: "Someday",
+        date: "2018-07-28",
         uuid: "6",
       },
       {
         name: "Book flights",
         tags: ["Work", "Hard"],
-        date: "Inbox",
+        date: "2018-07-29",
+        list: "89",
         uuid: "7",
       },
       {
         name: "Confirm conference call for Wednesday",
         tags: ["Conference", "Work"],
+        date: "2018-07-29",
         uuid: "3",
         checklist: [
           {
@@ -65,66 +91,152 @@ export const store = new Vuex.Store({
           },
         ],
       },
+      {
+        name: "Book Flights",
+        uuid: "00000",
+        list: "234",
+        heading: "1237768655472637",
+      },
+      {
+        name: "Read about the metro",
+        uuid: "123123453457686781",
+        list: "234",
+        description: "A description.",
+        heading: "1237768655472637",
+      },
+      {
+        name: "Borrow Sarah's travel guide",
+        uuid: "12312345345768678222",
+        list: "234",
+        heading: "1237768655472637",
+      },
+      {
+        name: "Book a hotel room",
+        uuid: "123123453457686780926334222",
+        list: "234",
+        heading: "1237768655472637",
+      },
+      {
+        name: "Power adapter",
+        uuid: "1231234534576867822232132123",
+        list: "234",
+        tags: ["Errand"],
+        description: "A description.",
+        heading: "1237768655412313272637",
+      },
+      {
+        name: "Extra camera battery",
+        uuid: "12312345345768678222323",
+        list: "234",
+        tags: ["Errand", "Important"],
+        description: "A description",
+        heading: "1237768655412313272637",
+      },
+      {
+        name: "Visit the Colosseum",
+        uuid: "123123453457686782222131232323",
+        list: "234",
+        description: "A description",
+        heading: "123776865111111000005472637",
+      },
+      {
+        name: "Take a day trip to the Vatican",
+        uuid: "1231235489858",
+        list: "234",
+        description: "A description",
+        heading: "123776865111111000005472637",
+      },
+      {
+        name: "Take a cooking class",
+        uuid: "123123548912111111858",
+        list: "234",
+      },
     ],
     projects: [
       {
-        name: "First Project",
+        name: "Vacation in Rome",
         uuid: "234",
+        list: "89",
+        notes: "We'll go from June 14-22 and stop through London on the way back to visit Jane and Paolo. Monti looks like a great place to stay. Maybe do a night out in Trastevere.",
+      },
+      {
+        name: "Buy a New Car",
+        uuid: "512",
+        list: "89",
+      },
+      {
+        name: "Throw Party for Eve",
+        uuid: "511",
+        list: "89",
+      },
+      {
+        name: "Prepare Presentation",
+        uuid: "510",
+        list: "771",
+      },
+      {
+        name: "Onboard James",
+        uuid: "5292883",
+        list: "771",
+      },
+      {
+        name: "Attend Conference",
+        uuid: "51081111",
+        list: "771",
+      },
+      {
+        name: "Order Team T-Shirts",
+        uuid: "88888888888888823123123",
+        list: "771",
+      },
+      {
+        name: "Lean Basic Italian",
+        uuid: "51027836725362",
+        list: "9987654",
+      },
+      {
+        name: "Run a Marathon",
+        uuid: "51027836725362221323",
+        list: "9987654",
       },
     ],
     areas: [
       {
-        name: "Area 51",
+        name: "Family",
         uuid: "89",
       },
+      {
+        name: "Work",
+        uuid: "771",
+      },
+      {
+        name: "Hobbies",
+        uuid: "9987654"
+      },
     ],
-  },
-  actions: {
-    todoUpdate({commit, state}, t) {
-      let index = findIndex(state.todos, (x) => x.uuid == t.uuid)
-      let todo = Object.assign({}, t)
-      commit("todoUpdate", {index, todo})
-    },
-    projectUpdate({commit, state}, p) {
-      let index = findIndex(state.projects, (x) => x.uuid == p.uuid)
-      let project = Object.assign({}, p)
-      commit("projectUpdate", {index, project})
-    },
-    todoCreate({commit}, data) {
-      if (data.date == "Anytime") data.date = null
-      if (data.date == "Today") data.date = new Date().toISOString().substring(0,10)
-      let uuid = uuidv1().toString()
-      let todo = {...data, uuid}
-      return new Promise((resolve, reject) => {
-        commit("todoCreate", todo)
-        resolve(uuid);
-      })
-    },
-    projectCreate({commit}, data) {
-      let uuid = uuidv1().toString()
-      let todo = {uuid}
-      return new Promise((resolve, reject) => {
-        commit("projectCreate", todo)
-        resolve(uuid);
-      })
-    },
-    todoCreateInProject({commit}, data) {
-      let uuid = uuidv1().toString()
-      let todo = {uuid}
-      commit("todoCreate", todo)
-      commit("todoCreateInProject", {todo: todo, projectUuid: data.projectUuid})
-      // return new Promise((resolve, reject) => {
-      //   if (data.projectUuid) {
-      //     // console.log('projectUuid', data.projectUuid)
-      //     // console.log("commit", data, projectUuid)
-      //   } else {
-      //     commit("todoCreate", todo)
-      //   }
-      //   resolve(uuid);
-      // })
-    },
+    headings: [
+      {
+        name: "Planning",
+        list: "89",
+        uuid: "1237768655472637",
+      },
+      {
+        name: "Things to buy",
+        list: "89",
+        uuid: "1237768655412313272637",
+      },
+      {
+        name: "Things to do",
+        list: "89",
+        uuid: "123776865111111000005472637",
+      },
+    ],
+    dragging: null,
   },
   getters: {
+    todos: (state) => (folder) => {
+
+    },
     tags: (state) => {
       return uniq(flatten(state.todos.map(todo => todo.tags)).concat(state.tags))
     },
@@ -142,17 +254,6 @@ export const store = new Vuex.Store({
     },
     projectGet: (state) => (uuid) => {
       return find(state.todos, {uuid: uuid})
-      // if (pr) {
-      //   let project = Object.assign({}, pr)
-      //   if (project && project.todos) {
-      //     project.todos = project.todos.map(uuid => {
-      //       return find(state.todos, {uuid: uuid})
-      //     })
-      //   }
-      //   return project
-      // } else {
-      //   return false
-      // }
     },
     todoFolder: (state) => (folder) => {
       return state.todos.filter(todo => {
@@ -175,6 +276,68 @@ export const store = new Vuex.Store({
       })
     },
   },
+  actions: {
+    todoUpdate({commit, state}, t) {
+      let index = findIndex(state.todos, (x) => x.uuid == t.uuid)
+      let todo = Object.assign({}, t)
+      // commit("todoUpdate", {index, todo})
+      return new Promise((resolve, reject) => {
+        commit("todoUpdate", {index, todo})
+        resolve();
+      })
+    },
+    projectUpdate({commit, state}, p) {
+      let index = findIndex(state.projects, (x) => x.uuid == p.uuid)
+      let project = Object.assign({}, p)
+      commit("projectUpdate", {index, project})
+    },
+    todoCreate({commit}, data) {
+      if (data.date == "Anytime") data.date = null
+      if (data.date == "Today") data.date = new Date().toISOString().substring(0,10)
+      if (data.date == "Upcoming") data.date = new Date().toISOString().substring(0,10)
+      if (data.date == "Inbox") data.date = "Inbox"
+      let uuid = uuidv1().toString()
+      let todo = {...data, uuid}
+      return new Promise((resolve, reject) => {
+        commit("todoCreate", todo)
+        resolve(uuid);
+      })
+    },
+    projectCreate({commit}, data) {
+      let uuid = uuidv1().toString()
+      let todo = {uuid}
+      return new Promise((resolve, reject) => {
+        commit("projectCreate", todo)
+        resolve(uuid);
+      })
+    },
+    listCreate({commit}, list) {
+      let uuid = uuidv1().toString()
+      let t = {uuid}
+      return new Promise((resolve, reject) => {
+        if (list == "project") commit("projectCreate", t)
+        if (list == "area") commit("areaCreate", t)
+        resolve(uuid);
+      })
+    },
+    todoCreateInProject({commit}, data) {
+      let uuid = uuidv1().toString()
+      let todo = {uuid}
+      commit("todoCreate", todo)
+      commit("todoCreateInProject", {todo: todo, projectUuid: data.projectUuid})
+    },
+    areaUpdate({commit, state}, a) {
+      let index = findIndex(state.areas, (x) => x.uuid == a.uuid)
+      let area = Object.assign({}, a)
+      commit("areaUpdate", {index, area})
+    },
+    draggingCreate({commit, state}, todo) {
+      commit("draggingCreate", todo)
+    },
+    draggingDestroy({commit, state}) {
+      commit("draggingDestroy")
+    },
+  },
   mutations: {
     tagCreate(state, tag) {
       state.tags.push(tag)
@@ -185,37 +348,28 @@ export const store = new Vuex.Store({
     projectUpdate(state, data) {
       Vue.set(state.projects, data.index, data.project)
     },
+    areaUpdate(state, data) {
+      Vue.set(state.areas, data.index, data.area)
+    },
     todoCreate(state, todo) {
       if (!state.todos) state.todos = [];
       state.todos.push(todo)
     },
     todoCreateInProject(state, data) {
-      // if (!state.todos) state.todos = [];
-      // state.todos.push({uuid: data.todo.uuid.toString()})
-      
       let project = find(state.todos, {uuid: data.projectUuid})
       project.todos.push(data.todo.uuid.toString())
-
-      // state.todos.forEach((e) => {
-      //   if (e.uuid == data.projectUuid) e.todos = e.todos.push(2)
-      // })
-
-      // console.log("project", project)
-      // let project = find(state.todos, {uuid: data.projectUuid})
-      // console.log("project", project)
-      // let x = project.todos
-      // console.log("x", x)
-      // x.push(4)
-      // console.log("x", x)
-      // project.todos = x
-      // console.log("project.todos", project.todos)
-
-      // if (project) {
-      //   project.todos.push(123)
-      // }
     },
     projectCreate(state, project) {
       state.projects.push(project)
-    }
+    },
+    areaCreate(state, area) {
+      state.areas.push(area)
+    },
+    draggingCreate(state, todo) {
+      state.dragging = todo
+    },
+    draggingDestroy(state) {
+      state.dragging = null
+    },
   },
 })
