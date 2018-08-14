@@ -26,15 +26,15 @@
       <TodoNew @full="whiteUpdate" :selected="todo.uuid == selected" @select="select" :dat="todo" :ref="todo.uuid" v-for="todo in todosFolder" :key="todo.uuid"></TodoNew>
     </div>
     <div v-if="folder == 'Today'">
-      <Container @drag-start="dragStart($event, tagFilter(excludeProjects(todosFolder)))" @drag-end="dragEnd($event)" :get-child-payload="(i) => i">
+      <!-- <Container @drag-start="dragStart($event, tagFilter(excludeProjects(todosFolder)))" @drag-end="dragEnd($event)" :get-child-payload="(i) => i">
         <Draggable v-for="todo in tagFilter(excludeProjects(todosFolder))" :key="todo.uuid">
           <TodoNew :area="true" @full="whiteUpdate" :selected="todo.uuid == selected" @select="select" :dat="todo" :ref="todo.uuid"></TodoNew>
         </Draggable>
-      </Container>
+      </Container> -->
       <div style="margin: 0 40px">
         <Container @drag-start="dragStart($event, tagFilter(excludeProjects(todosFolder)))" @drag-end="dragEnd($event)" :get-child-payload="(i) => i">
           <Draggable v-for="todo in tagFilter(excludeProjects(todosFolder))" :key="todo.uuid">
-            <Todo :data="todo" :tags="['Home', 'Work']" :area="true"></Todo>
+            <Todo :data="todo" :tags="['Home', 'Work']" :area="true" @update="todoUpdate($event)" @unfold="whiteUpdate"></Todo>
           </Draggable>
         </Container>
       </div>
@@ -228,6 +228,9 @@
       },
     },
     methods: {
+      todoUpdate(todo) {
+        this.$store.dispatch("todoUpdate", todo)
+      },
       // dragEnter(list) {
       //   if (this.$store.state.dragging && list) {
       //     this.$store.dispatch("draggingCreate", {...this.$store.state.dragging, heading: list.uuid})

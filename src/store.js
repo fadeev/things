@@ -28,13 +28,14 @@ export const store = new Vuex.Store({
           },
           {
             name: "Buy butter",
+            done: true
           },
           {
             name: "Apply butter to bread",
           },
         ],
         tags: ["Home", "Work", "Unicorns"],
-        date: "2018-08-12",
+        date: "2018-08-14",
         uuid: "1000000000000000000000",
       },
       {
