@@ -2,7 +2,7 @@
   <div>
     <Container @drop="(e) => onDrop(dat.heading ? dat.heading.uuid : null, e)" group-name="todo" :get-child-payload="getChildPayload()">
       <Draggable style="overflow: visible" v-for="todo in dat.todos" :key="todo.uuid">
-        <TodoNew :stay="true" @full="whiteUpdate" :selected="todo.uuid == selected" @select="select" :dat="todo" :key="todo.uuid" :ref="todo.uuid"></TodoNew>
+        <TodoNew :stay="true" :area="false" @full="whiteUpdate" :selected="todo.uuid == selected" @select="select" :dat="todo" :key="todo.uuid" :ref="todo.uuid"></TodoNew>
       </Draggable>
     </Container>
   </div>

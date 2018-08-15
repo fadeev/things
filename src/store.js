@@ -74,7 +74,6 @@ export const store = new Vuex.Store({
       {
         name: "Book flights",
         tags: ["Work", "Hard"],
-        date: "2018-07-29",
         list: "89",
         uuid: "7",
       },
@@ -95,7 +94,17 @@ export const store = new Vuex.Store({
       {
         name: "Book Flights",
         uuid: "00000",
+        tags: ["Travel", "Fun"],
         list: "234",
+        checklist: [
+          {
+            name: "London from June 3",
+          },
+          {
+            name: "Paris from June 10",
+          },
+        ],
+        date: "2018-08-14",
         heading: "1237768655472637",
       },
       {
@@ -149,6 +158,11 @@ export const store = new Vuex.Store({
       },
       {
         name: "Take a cooking class",
+        checklist: [],
+        tags: ["Fun"],
+        description: "Description",
+        deadline: "2018-01-01",
+        date: "2018-08-14",
         uuid: "123123548912111111858",
         list: "234",
       },

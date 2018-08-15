@@ -51,12 +51,12 @@
       </div>
     </div>
     <div v-if="folder == 'Upcoming'">
-      <div class="row day" v-for="(dayTodos, date) in groupByDate(tagFilter(todosFolder))" :key="date">
+      <div class="row day" v-for="dayTodos in groupByDate(tagFilter(todosFolder))" :key="dayTodos.date">
         <div class="header">
-          <div class="number">{{date.split('-')[2]}}</div>
-          <div class="day-of-week">{{day(date)}}</div>
+          <div class="number">{{dayTodos.date.split('-')[2]}}</div>
+          <div class="day-of-week">{{day(dayTodos.date)}}</div>
         </div>
-        <TodoNew @full="whiteUpdate" :selected="todo.uuid == selected" @select="select" :dat="todo" :ref="todo.uuid" v-for="todo in dayTodos" :key="todo.uuid"></TodoNew>
+        <TodoNew @full="whiteUpdate" :selected="todo.uuid == selected" @select="select" :dat="todo" :ref="todo.uuid" v-for="todo in dayTodos.todos" :key="todo.uuid"></TodoNew>
       </div>
     </div>
     <div v-if="folder == 'Someday' || folder == 'Anytime'">
@@ -140,7 +140,7 @@
 <script>
   import { Route } from 'vue-router'
 
-  import { includes, uniq, flatten, omitBy, isNil, cloneDeep, find, some, groupBy, forOwn, mapKeys, mapValues, values, sortBy, omit } from 'lodash'
+  import { map, includes, orderBy, uniq, flatten, keys, value, omitBy, isNil, cloneDeep, find, some, groupBy, forOwn, mapKeys, mapValues, values, sortBy, omit } from 'lodash'
 
   import TodoNew from "./TodoNew.vue"
   import Todo from "./Todo.vue"
@@ -315,7 +315,9 @@
         })
       },
       groupByDate(todos) {
-        return groupBy(todos, "date")
+        return sortBy(map(groupBy(todos, "date"), (v, k) => {
+          return {date: k, todos: v}
+        }), ["date"])
       },
       whiteUpdate() {
         let array = [];
