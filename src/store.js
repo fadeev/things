@@ -247,10 +247,14 @@ export const store = new Vuex.Store({
       },
     ],
     dragging: null,
+    selected: null,
   },
   getters: {
     todos: (state) => (folder) => {
 
+    },
+    todoById: (state) => (uuid) => {
+      return find(state.todos, {uuid: uuid})
     },
     tags: (state) => {
       return uniq(flatten(state.todos.map(todo => todo.tags)).concat(state.tags))
@@ -292,6 +296,9 @@ export const store = new Vuex.Store({
     },
   },
   actions: {
+    todoSelect({commit, state}, t) {
+      commit("todoSelect" , t)
+    },
     todoUpdate({commit, state}, t) {
       let index = findIndex(state.todos, (x) => x.uuid == t.uuid)
       let todo = Object.assign({}, t)
@@ -354,6 +361,9 @@ export const store = new Vuex.Store({
     },
   },
   mutations: {
+    todoSelect(state, t) {
+      state.selected = t.uuid
+    },
     tagCreate(state, tag) {
       state.tags.push(tag)
     },

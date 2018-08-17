@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div :class="{leave: leave, todo: true, full: full, compact: !full}" :style="{maxHeight: full ? 350 + (local.checklist ? local.checklist.length : 0) * 37 + 'px' : null}" @click.stop="activate(null); todoSelect(!selected)" @dblclick.stop="fullToggle(!full)">
+    <div :class="{leave: leave, selected: selected, todo: true, full: full, compact: !full}" :style="{maxHeight: full ? 350 + (local.checklist ? local.checklist.length : 0) * 37 + 'px' : null}" @click.stop="select(); activate(null)" @dblclick.stop="fullToggle(!full)">
       <div class="block name">
         <div class="check space" @click.stop="todoDone()">
           <Icon :image="local.done ? 'box-check' : 'box-empty'" :color="local.done ? '#215abc': 'gray'" size="tiny"></Icon>
@@ -9,7 +9,7 @@
           <div class="name">
             <Icon class="space" v-if="isToday() && !area" image="star" color="#fbcd43" size="tiny"></Icon>
             <div class="space" v-if="!full">{{local.name || "New Todo"}}</div>
-            <input placeholder="New Todo" v-if="full" class="space" type="text" v-model="local.name">
+            <input ref="todoName" placeholder="New Todo" v-if="full" class="space" type="text" v-model="local.name" @keydown.enter="fullToggle(false)">
             <Icon v-if="!full && local.checklist" class="space" image="checklist" color="#aaa" size="tiny"></Icon>
             <Icon v-if="!full && local.description" class="space" image="document" color="#aaa" size="tiny"></Icon>
             <div v-if="!full && local.tags" class="space tag" v-for="tag in local.tags" :key="tag">{{tag}}</div>
@@ -174,9 +174,10 @@
   }
 
   .space { margin-right: 5px; }
-  .todo { border-radius: 3px; padding: 20px; transition: padding .5s, max-height .5s, box-shadow .25s, margin .5s; }
-  .compact { user-select: none; max-height: 40px; padding: 10px 20px; overflow: hidden; transition: padding .5s, max-height .5s, box-shadow .25s, margin .5s; }
-  .full { margin: 10px 0; background: white; animation: overflow .5s forwards; box-shadow: 0 1px 3px 1px rgba(0,0,0,.1); }
+
+  .todo { border-radius: 5px; padding: 20px; transition: padding .5s, max-height .5s, box-shadow .25s, margin .5s; }
+  .compact { cursor: pointer; user-select: none; max-height: 40px; padding: 5px 20px; overflow: hidden; transition: padding .5s, max-height .5s, box-shadow .25s, margin .5s; }
+  .full { margin: 10px 0; background: white; animation: overflow .5s forwards; box-shadow: 0 2px 7px -1px rgba(0,0,0,.15); }
 
   @keyframes overflow {
     0% { overflow: hidden; }
@@ -186,17 +187,18 @@
 
   .block { margin-left: 21px; padding-bottom: 10px; }
   
-  .block.name { margin-left: 0; display: flex; align-items: center; }
+  .block.name { margin-left: 0; display: flex; align-items: center; height: 40px; }
   .block.checklist { margin-left: 16px; }
   .block.name .details { user-select: none; }
   .block.name .check { width: 16px; display: flex; align-items: flex-end; justify-content: center; }
   .block.name .details { display: flex; flex-direction: column; flex-grow: 1; }
   .block.name .details .name { display: flex; align-items: center; }
+  .block.name .details .name input { flex-grow: 1; }
   .block.name .details .name .deadline { display: flex; margin-left: auto; color: #ff5b79; }
   .block.name .details .name .tag { align-items: center; font-size: 12px; color: rgba(0,0,0,.5); padding: 0 7px; border-radius: 1000px; margin: 0 2px; border: 1px solid rgba(0,0,0,.25); }
   .block.name .area { font-size: 10px; color: rgba(0,0,0,.5); }
   
-  .block.notes textarea { width: 100%; }
+  .block.notes textarea { width: 100%; padding: 0; }
   
   .block.checklist .item { height: 37px; align-items: center; display: flex; border: 1px solid rgba(0,0,0,0); border-top-color: rgba(0,0,0,.1); padding: 7px 5px; }
   .block.checklist .item:last-child { border-bottom: 1px solid rgba(0,0,0,.1); }
@@ -230,7 +232,7 @@
 
   .block.checklist .item.smooth-dnd-ghost { background: #d9e5ff; border-color: rgba(0,0,0,0); border-radius: 3px; }
 
-  .selected { background: #d9e5ff; }
+  .compact.selected { background: #d9e5ff; }
 </style>
 
 <script>
@@ -254,7 +256,7 @@
   };
 
   export default {
-    props: ["data", "area", "tags"],
+    props: ["data", "area", "tags", "selected"],
     components: { Icon, Cal, Container, Draggable },
     data: function() {
       return {
@@ -269,7 +271,6 @@
         active: null,
         full: null,
         leave: null,
-        selected: null,
       }
     },
     computed: {
@@ -286,11 +287,11 @@
       },
     },
     methods: {
+      select() {
+        this.$emit("select", this.local.uuid)
+      },
       setDeadline() {
         this.$set(this.local, 'deadline', null)
-      },
-      todoSelect(bool) {
-        this.selected = bool
       },
       hasChecklist() {
         return this.local.checklist && this.local.checklist.length >= 1
@@ -376,6 +377,9 @@
       },
       fullToggle(bool) {
         this.full = bool
+        this.$nextTick(() => {
+          if (bool && this.$refs["todoName"]) this.$refs["todoName"].focus()
+        })
         if (this.buffer.date != null) {
           setTimeout(() => {
             this.todoLeave()
@@ -386,7 +390,7 @@
             }
           }, 2000)
         }
-        this.$emit("unfold", true)
+        this.$emit("unfold", bool)
       },
       isToday() {
         return (this.buffer.date || this.local.date) == this.dateToday

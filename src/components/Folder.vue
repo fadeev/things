@@ -23,31 +23,16 @@
       <div :class="{tag: true, selected: tag == tagSelected}" @click="tagSelected = tag" v-for="(tag, index) in tags" :key="index">{{tag}}</div>
     </div>
     <div v-if="folder == 'Inbox'">
-      <TodoNew @full="whiteUpdate" :selected="todo.uuid == selected" @select="select" :dat="todo" :ref="todo.uuid" v-for="todo in todosFolder" :key="todo.uuid"></TodoNew>
+      <TodoGroup class="folder" :data="{todos: todosFolder}"></TodoGroup>
     </div>
-    <div v-if="folder == 'Today'">
-      <!-- <Container @drag-start="dragStart($event, tagFilter(excludeProjects(todosFolder)))" @drag-end="dragEnd($event)" :get-child-payload="(i) => i">
-        <Draggable v-for="todo in tagFilter(excludeProjects(todosFolder))" :key="todo.uuid">
-          <TodoNew :area="true" @full="whiteUpdate" :selected="todo.uuid == selected" @select="select" :dat="todo" :ref="todo.uuid"></TodoNew>
-        </Draggable>
-      </Container> -->
-      <div style="margin: 0 40px">
-        <Container @drag-start="dragStart($event, tagFilter(excludeProjects(todosFolder)))" @drag-end="dragEnd($event)" :get-child-payload="(i) => i">
-          <Draggable v-for="todo in tagFilter(excludeProjects(todosFolder))" :key="todo.uuid">
-            <Todo :data="todo" :tags="['Home', 'Work']" :area="true" @update="todoUpdate($event)" @unfold="whiteUpdate"></Todo>
-          </Draggable>
-        </Container>
-      </div>
+    <div v-if="folder == 'Today'" class="folder" @click="deselect()">
+      <TodoGroup :area="true" :data="todayTodos"></TodoGroup>
       <div v-for="(todos, project) in filterBy($store.state.projects, tagFilter(todosFolder))" :key="project">
         <div class="row project">
           <Icon image="project"></Icon>
           <div>{{project}}</div>
         </div>
-        <Container @drag-start="dragStart($event, todos)" @drag-end="dragEnd($event)" :get-child-payload="(i) => i">
-          <Draggable v-for="todo in todos" :key="todo.uuid">
-            <TodoNew @full="whiteUpdate" :selected="todo.uuid == selected" @select="select" :dat="todo" :ref="todo.uuid"></TodoNew>
-          </Draggable>
-        </Container>
+        <TodoGroup :data="{todos: todos}" :area="true"></TodoGroup>
       </div>
     </div>
     <div v-if="folder == 'Upcoming'">
@@ -56,42 +41,30 @@
           <div class="number">{{dayTodos.date.split('-')[2]}}</div>
           <div class="day-of-week">{{day(dayTodos.date)}}</div>
         </div>
-        <TodoNew @full="whiteUpdate" :selected="todo.uuid == selected" @select="select" :dat="todo" :ref="todo.uuid" v-for="todo in dayTodos.todos" :key="todo.uuid"></TodoNew>
+        <TodoGroup class="folder" :data="dayTodos"></TodoGroup>
       </div>
     </div>
     <div v-if="folder == 'Someday' || folder == 'Anytime'">
-      <Container @drag-start="dragStart($event, tagFilter(todosFolder.filter(t => !t.list)))" @drag-end="dragEnd($event)" :get-child-payload="(i) => i">
-        <Draggable  v-for="todo in tagFilter(todosFolder.filter(t => !t.list))" :key="todo.uuid">
-          <TodoNew @full="whiteUpdate" :selected="todo.uuid == selected" @select="select" :dat="todo" :ref="todo.uuid"></TodoNew>
-        </Draggable>
-      </Container>
-      <div v-for="(todos, project) in filterBy($store.state.projects, tagFilter(todosFolder))" :key="project">
+      <TodoGroup class="folder" :data="{todos: tagFilter(todosFolder.filter(t => !t.list))}"></TodoGroup>
+      <div class="folder" v-for="(todos, project) in filterBy($store.state.projects, tagFilter(todosFolder))" :key="project">
         <div class="row project">
           <Icon image="project"></Icon>
           <div>{{project}}</div>
         </div>
-        <Container @drag-start="dragStart($event, todos)" @drag-end="dragEnd($event)" :get-child-payload="(i) => i">
-          <Draggable v-for="todo in todos" :key="todo.uuid">
-            <TodoNew @full="whiteUpdate" :selected="todo.uuid == selected" @select="select" :dat="todo" :ref="todo.uuid"></TodoNew>
-          </Draggable>
-        </Container>
+        <TodoGroup :data="{todos: todos}"></TodoGroup>
       </div>
-      <div v-for="(todos, project) in filterBy($store.state.areas, tagFilter(todosFolder))" :key="project">
+      <div class="folder" v-for="(todos, project) in filterBy($store.state.areas, tagFilter(todosFolder))" :key="project">
         <div class="row project">
           <Icon image="project"></Icon>
           <div>{{project}}</div>
         </div>
-        <Container @drag-start="dragStart($event, todos)" @drag-end="dragEnd($event)" :get-child-payload="(i) => i">
-          <Draggable v-for="todo in todos" :key="todo.uuid">
-            <TodoNew @full="whiteUpdate" :selected="todo.uuid == selected" @select="select" :dat="todo" :ref="todo.uuid"></TodoNew>
-          </Draggable>
-        </Container>
+        <TodoGroup :data="{todos: todos}"></TodoGroup>
       </div>
     </div>
     <div v-if="insideList(this.$store.state.projects)">
       <div v-for="todos in projectGroup(tagFilter(todosProject))" :key="todos.heading ? todos.heading.uuid : 0">
         <div v-if="todos.heading" class="heading">{{todos.heading.name}}</div>
-        <TodoGroup :data="todos" ref="group"></TodoGroup>
+        <TodoGroup class="folder" :data="todos" ref="group"></TodoGroup>
       </div>
     </div>
     <div v-if="insideList(this.$store.state.areas)">
@@ -101,17 +74,15 @@
           <div>{{project.name}}</div>
         </div>
       </div>
-      <Container @drag-start="dragStart($event, tagFilter(todosArea))" @drag-end="dragEnd($event)" :get-child-payload="(i) => i">
-        <Draggable v-for="todo in tagFilter(todosArea)" :key="todo.uuid">
-          <TodoNew @full="whiteUpdate" :selected="todo.uuid == selected" @select="select" :dat="todo" :ref="todo.uuid"></TodoNew>
-        </Draggable>
-      </Container>
+      <TodoGroup class="folder" :data="{todos: tagFilter(todosArea)}"></TodoGroup>
     </div>
   </div>
 </template>
 
 <style scoped>
-  .row.project { margin: 20px 58px 10px; display: flex; align-items: center; font-weight: bold; border-bottom: 1px solid rgba(0,0,0,.15); padding-bottom: 10px; }
+  .folder { margin: 0 40px; }
+
+  .row.project { margin: 20px 20px 10px; display: flex; align-items: center; font-weight: bold; border-bottom: 1px solid rgba(0,0,0,.15); padding-bottom: 10px; }
   .row.title { margin: 0 60px 10px; font-size: 1.5em; font-weight: bold; display: flex; align-items: center; }
   .row.title input { padding: 0; border: none; background: none; font-size: 1em; font-weight: bold; font-family: "Roboto"; outline: none; }
   .row.notes { margin: 0 60px 30px; }
@@ -203,6 +174,11 @@
       }
     },
     computed: {
+      todayTodos() {
+        return {
+          todos: this.tagFilter(this.excludeProjects(this.todosFolder))
+        }
+      },
       todosAll() {
         return this.$store.getters.todoFolder(this.folder).filter(todo => {
           return todo.list == this.$route.params.uuid
@@ -228,6 +204,10 @@
       },
     },
     methods: {
+      deselect() {
+        EventBus.$emit("todoDeselect")
+        this.$store.dispatch("todoSelect", {uuid: null})
+      },
       todoUpdate(todo) {
         this.$store.dispatch("todoUpdate", todo)
       },
@@ -329,19 +309,12 @@
       select(e) {
         this.selected = e
       },
-      deselect() {
-        forOwn(this.$refs, (todo, uuid) => todo.forEach((element) => {
-          if (element.deselect) element.deselect()
-        }))
-        this.selected = false;
-      },
       todoCreate() {
-        console.log("todoCreate")
         let list = this.$route.params.uuid ? {list: this.$route.params.uuid} : false 
         let date = this.folder ? {date: this.folder} : false
         this.$store.dispatch("todoCreate", {...list, ...date}).then(uuid => {
           this.$nextTick(() => {
-            if (this.$refs[uuid]) this.$refs[uuid][0].fullToggle(true)
+            EventBus.$emit("fullToggle", {uuid: uuid})
           })
         })
       },

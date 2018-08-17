@@ -80,8 +80,11 @@
         <div class="button" @click="todoCreate">
           <svg xmlns="http://www.w3.org/2000/svg" fill="gray" width="16" height="16" viewBox="0 0 24 24"><path d="M24 10h-10v-10h-4v10h-10v4h10v10h4v-10h10z"/></svg>
         </div>
-        <div class="button">
+        <div class="button" @click.stop="todoDate">
           <svg xmlns="http://www.w3.org/2000/svg" fill="gray" width="16" height="16" viewBox="0 0 24 24"><path d="M20 20h-4v-4h4v4zm-6-10h-4v4h4v-4zm6 0h-4v4h4v-4zm-12 6h-4v4h4v-4zm6 0h-4v4h4v-4zm-6-6h-4v4h4v-4zm16-8v22h-24v-22h3v1c0 1.103.897 2 2 2s2-.897 2-2v-1h10v1c0 1.103.897 2 2 2s2-.897 2-2v-1h3zm-2 6h-20v14h20v-14zm-2-7c0-.552-.447-1-1-1s-1 .448-1 1v2c0 .552.447 1 1 1s1-.448 1-1v-2zm-14 2c0 .552-.447 1-1 1s-1-.448-1-1v-2c0-.552.447-1 1-1s1 .448 1 1v2z"/></svg>
+          <div v-if="calendar" class="menu cal">
+            <Cal @date="setDate($event)"></Cal>
+          </div>
         </div>
         <div class="button">
           <svg xmlns="http://www.w3.org/2000/svg" fill="gray" width="16" height="16" viewBox="0 0 24 24"><path d="M13.025 1l-2.847 2.828 6.176 6.176h-16.354v3.992h16.354l-6.176 6.176 2.847 2.828 10.975-11z"/></svg>
@@ -100,11 +103,13 @@
   .menu .item { cursor: pointer; display: flex; align-items: center; padding: 3px 5px; border-radius: 2px; }
   .menu .item:hover { background: #5391f4; }
 
+  .menu.cal { left: inherit; top: inherit; right: inherit; bottom: 40px; }
+
   .window { display: flex; height: 100vh; font-weight: 400; font-family: "Roboto", sans-serif; color: rgba(0,0,0,.75); }
   .sidebar { background: rgb(245, 246, 247); width: 250px; flex-shrink: 0; overflow-y: hidden; }
   .sidebar .list { margin: 20px; }
   .sidebar .list .item { overflow: hidden; border-radius: 5px; padding: 5px; cursor: pointer; user-select: none; margin-bottom: 5px; display: flex; align-items: center; }
-  .main { transition: background .5s; overflow-y: scroll; background: rgb(251, 250, 251); display: flex; flex-direction: column; justify-content: space-between; flex-grow: 1; }
+  .main { transition: background-color .5s; overflow-y: scroll; background: rgb(251, 250, 251); display: flex; flex-direction: column; justify-content: space-between; flex-grow: 1; }
   .workspace { margin-bottom: 100px; padding-top: 60px; }
   .workspace > .new { margin-left: 40px; margin-right: 40px; margin-bottom: 0; }
   .workspace > .new.full { margin-bottom: 20px; }
@@ -127,7 +132,7 @@
   .toolbar .button { cursor: pointer; }
   .toolbar .left { background: rgba(245, 246, 247, .85); flex-shrink: 0; align-items: center; display: flex; flex-basis: 250px; padding: 10px 25px; box-sizing: border-box; flex-direction: row; justify-content: space-between; }
   .toolbar .right { background: rgba(255,255,255,.85); align-items: center; display: flex; flex-grow: 1; flex-direction: row; box-sizing: border-box; justify-content: center; }
-  .toolbar .right .button { padding: 5px 40px; }
+  .toolbar .right .button { display: flex; justify-content: center; align-items: flex-end; position: relative; padding: 5px 40px; }
   .toolbar .right .button:hover { border-color: rgba(0,0,0,.1); border-radius: 4px; }
   .toolbar .right .button:active { background: rgba(0,0,0,.1); border-color: transparent; }
 
@@ -147,24 +152,40 @@
 <script>
   import TodoNew from "./TodoNew.vue"
   import Icon from "./Icon.vue"
-  import { groupBy, sortBy } from 'lodash'
+  import Cal from "./Cal.vue"
+  import { groupBy, sortBy, cloneDeep } from 'lodash'
   import { EventBus } from "../event-bus.js"
   import { Container, Draggable } from "vue-smooth-dnd";
 
   export default {
-    components: { TodoNew, Icon, Container, Draggable },
+    components: { TodoNew, Icon, Cal, Container, Draggable },
     data() {
       return {
         white: true,
         newListMenu: null,
+        calendar: null,
       }
     },
     mounted() {
       EventBus.$on("whiteUpdate", bool => {
         this.white = bool
       })
+      EventBus.$on("todoUnfold", () => {
+        this.$nextTick(() => {
+          this.white = document.querySelectorAll(".full").length <= 0
+        })
+      })
     },
     methods: {
+      setDate(date) {
+        let todo = cloneDeep(this.$store.getters.todoById(this.$store.state.selected))
+        todo.date = date
+        console.log(todo)
+        this.$store.dispatch("todoUpdate", todo)
+      },
+      todoDate() {
+        this.calendar = !this.calendar
+      },
       dragStart(event, list) {
         if (event.isSource) {
           this.$store.dispatch("draggingCreate", list[event.payload])
@@ -183,6 +204,7 @@
         }
       },
       deselect() {
+        EventBus.$emit("todoDeselect")
         this.$refs['folder'].deselect()
         this.newListMenu = false
       },

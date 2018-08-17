@@ -1,8 +1,16 @@
 <template>
   <div>
-    <Container @drop="(e) => onDrop(dat.heading ? dat.heading.uuid : null, e)" group-name="todo" :get-child-payload="getChildPayload()">
-      <Draggable style="overflow: visible" v-for="todo in dat.todos" :key="todo.uuid">
-        <TodoNew :stay="true" :area="false" @full="whiteUpdate" :selected="todo.uuid == selected" @select="select" :dat="todo" :key="todo.uuid" :ref="todo.uuid"></TodoNew>
+    <Container @drop="(e) => onDrop(local.heading ? local.heading.uuid : null, e)" group-name="todo" :get-child-payload="getChildPayload()">
+      <Draggable style="overflow: visible" v-for="todo in local.todos" :key="todo.uuid">
+        <Todo :selected="selected == todo.uuid"
+              @select="todoSelect($event)"
+              @unfold="todoUnfold"
+              @update="todoUpdate($event)"
+              :area="area"
+              :data="todo"
+              :key="todo.uuid"
+              ref="todo">
+        </Todo>
       </Draggable>
     </Container>
   </div>
@@ -13,10 +21,11 @@
 </style>
 
 <script>
-  import TodoNew from './TodoNew.vue'
+  import Todo from './Todo.vue'
   import { Container, Draggable } from "vue-smooth-dnd"
-  import { includes, uniq, flatten, omitBy, isNil, cloneDeep, find, some, groupBy, forOwn, mapKeys, mapValues, values, sortBy, omit } from 'lodash'
+  import { includes, map, forEach, uniq, flatten, omitBy, isNil, cloneDeep, find, some, groupBy, forOwn, mapKeys, mapValues, values, sortBy, omit } from 'lodash'
   import { EventBus } from '../event-bus.js'
+  import TodoIconVue from './TodoIcon.vue'
 
   export const applyDrag = (arr, dragResult) => {
     const { removedIndex, addedIndex, payload } = dragResult
@@ -33,18 +42,53 @@
   };
 
   export default {
-    components: { TodoNew, Container, Draggable },
-    props: ["data"],
-    data() {
+    components: { Todo, Container, Draggable },
+    props: ["data", "area"],
+    data: function() {
       return {
-        dat: cloneDeep(this.data),
-        selected: null,
+        local: cloneDeep(this.data),
       }
     },
-    methods: {
+    computed: {
+      selected() {
+        return this.$store.state.selected
+      }
+    },
+    watch: {
+      data: {
+        deep: true,
+        handler(newData) {
+          this.local = cloneDeep(newData)
+        }
+      }
+    },
+    mounted() {
+      EventBus.$on("fullToggle", ({uuid}) => {
+        forEach(this.$refs["todo"], (todo) => {
+          if (todo.data.uuid == uuid) {
+            todo.fullToggle(true)
+          }
+        })
+      })
+      EventBus.$on("todoDeselect", () => {
+        forEach(this.$refs["todo"], (todo) => {
+          todo.fullToggle(false)
+        })
+      })
+    },
+    methods: { 
+      todoSelect(uuid) {
+        this.$store.dispatch("todoSelect", {uuid: uuid})
+      },
+      todoUnfold() {
+        EventBus.$emit("todoUnfold")
+      },
+      todoUpdate(todo) {
+        this.$store.dispatch("todoUpdate", todo)
+      },
       getChildPayload: function() {
         return index => {
-          return this.dat.todos[index]
+          return this.local.todos[index]
         }
       },
       whiteUpdate() {
@@ -70,11 +114,11 @@
         //   return
         // }
         if (event.addedIndex != null && event.removedIndex != null) {
-          this.dat.todos = applyDrag([...this.dat.todos], event)
+          this.local.todos = applyDrag([...this.local.todos], event)
           return
         }
         if (event.addedIndex != null) {
-          this.dat.todos = applyDrag([...this.dat.todos], event)
+          this.local.todos = applyDrag([...this.local.todos], event)
           this.$store.dispatch("todoUpdate", {...event.payload, heading: uuid})
         }
         if (event.removedIndex != null) {
@@ -83,7 +127,7 @@
           // })
           // this.$refs[event.payload.uuid][0].fold()
           // setTimeout(() => {
-            this.dat.todos.splice(event.removedIndex, 1)
+            this.local.todos.splice(event.removedIndex, 1)
           // }, 2000)
         }
       },
