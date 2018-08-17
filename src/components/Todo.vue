@@ -52,7 +52,9 @@
           <div class="block date">
             <Icon class="space" :image="isToday() ? 'star' : 'calendar'" :color="isToday() ? '#fbcd43' : '#aaa'"></Icon>
             <div @click.stop="active = (active == 'date-change' ? null : 'date-change')" class="date space">{{isToday() ? "Today" : buffer.date || local.date}}</div>
-            <div @click.stop="setDate(false)" class="button">🞩</div>
+            <div @click.stop="setDate(false)" class="button">
+              <Icon image="cross" size="tiny"></Icon>
+            </div>
             <transition name="fade-in">
               <div class="menu" v-if="active == 'date-change'">
                 <Cal @date="setDate($event)"></Cal>
@@ -66,10 +68,12 @@
           <div class="block date">
             <Icon class="space" image="flag" color="#aaa"></Icon>
             <div @click.stop="active = (active == 'deadline-change' ? null : 'deadline-change')" class="date space">{{local.deadline}}</div>
-            <div @click.stop="local.deadline = null" class="button">🞩</div>
+            <div @click.stop="local.deadline = null" class="button">
+              <Icon image="cross" size="tiny"></Icon>
+            </div>
             <transition name="fade-in">
               <div class="menu" v-if="active == 'deadline-change'">
-                <Cal @date="local.deadline = $event; active = null"></Cal>
+                <Cal @date="setDeadline()"></Cal>
               </div>
             </transition>
           </div>
@@ -282,6 +286,9 @@
       },
     },
     methods: {
+      setDeadline() {
+        this.$set(this.local, 'deadline', null)
+      },
       todoSelect(bool) {
         this.selected = bool
       },
