@@ -1,11 +1,14 @@
 <template>
   <div>
-    <Container @drop="(e) => onDrop(local.heading ? local.heading.uuid : null, group, e)"
-               @drag-start="dragStart($event, local)"
+    <Container @drop="(e) => onDrop(group, e)"
+               @drag-start="dragStart($event, local); gn = 'todo'"
                @drag-end="dragEnd($event)"
                group-name="todo"
+               drag-class="draggg"
                :get-child-payload="getChildPayload()">
-      <Draggable style="overflow: visible" v-for="todo in local.todos" :key="todo.uuid">
+      <Draggable style="overflow: visible"
+                 v-for="todo in local.todos"
+                 :key="todo.uuid">
         <Todo :selected="selected == todo.uuid"
               :area="area"
               :data="todo"
@@ -20,8 +23,8 @@
   </div>
 </template>
 
-<style>
-  .smooth-dnd-ghost { width: 30px; display: block; }
+<style scoped>
+
 </style>
 
 <script>
@@ -123,14 +126,14 @@
       select(e) {
         this.selected = e
       },
-      onDrop: function(heading_uuid, local, event) {
+      onDrop: function(group, event) {
         if (event.addedIndex != null && event.removedIndex != null) {
           this.local.todos = applyDrag([...this.local.todos], event)
           return
         }
         if (event.addedIndex != null) {
           this.local.todos = applyDrag([...this.local.todos], event)
-          this.$store.dispatch("todoUpdate", {...event.payload, heading: heading_uuid, list: local.uuid})
+          this.$store.dispatch("todoUpdate", {...event.payload, ...group})
         }
         if (event.removedIndex != null) {
           this.local.todos.splice(event.removedIndex, 1)

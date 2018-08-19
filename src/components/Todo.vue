@@ -234,6 +234,7 @@
   .block.checklist .item.smooth-dnd-ghost { background: #d9e5ff; border-color: rgba(0,0,0,0); border-radius: 3px; }
 
   .compact.selected { background: #d9e5ff; }
+  .draggg .compact { background: #d9e5ff; }
 </style>
 
 <script>

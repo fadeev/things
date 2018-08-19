@@ -207,7 +207,7 @@
         }
       },
       draggingUpdate(project) {
-        if (project && project.uuid) {
+        if (project && project.uuid && this.$store.state.dragging) {
           this.$store.dispatch("draggingCreate", {...this.$store.state.dragging, list: project.uuid})
         }
       },

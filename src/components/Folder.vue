@@ -26,13 +26,13 @@
       <TodoGroup class="folder" :data="{todos: todosFolder}"></TodoGroup>
     </div>
     <div v-if="folder == 'Today' || folder == 'Someday' || folder =='Anytime'" class="folder" @click="deselect()">
-      <TodoGroup :area="true" :data="folderTodos"></TodoGroup>
+      <TodoGroup :area="true" :data="folderTodos" :group="{list: null}"></TodoGroup>
       <div v-for="project in folderTodosProjects" :key="project.project.uuid">
         <div class="row project">
           <Icon image="project"></Icon>
           <div>{{project.project.name}}</div>
         </div>
-        <TodoGroup :data="{todos: project.todos}" :group="project.project"></TodoGroup>
+        <TodoGroup :data="{todos: project.todos}" :group="{list: project.project.uuid}"></TodoGroup>
       </div>
     </div>
     <div v-if="folder == 'Upcoming'">
@@ -41,13 +41,13 @@
           <div class="number">{{dayTodos.date.split('-')[2]}}</div>
           <div class="day-of-week">{{day(dayTodos.date)}}</div>
         </div>
-        <TodoGroup class="folder" :data="dayTodos"></TodoGroup>
+        <TodoGroup class="folder" :data="dayTodos" :group="{date: dayTodos.date}"></TodoGroup>
       </div>
     </div>
     <div v-if="insideList(this.$store.state.projects)">
       <div v-for="todos in projectTodos" :key="todos.heading ? todos.heading.uuid : 0">
         <div v-if="todos.heading" class="heading">{{todos.heading.name}}</div>
-        <TodoGroup class="folder" :data="todos" ref="group"></TodoGroup>
+        <TodoGroup class="folder" :data="todos" :group="{heading: todos.heading ? todos.heading.uuid : null}" ref="group"></TodoGroup>
       </div>
     </div>
     <div v-if="insideList(this.$store.state.areas)">
@@ -214,7 +214,9 @@
         })
       },
       tags() {
-        let source = this.$route.params.uuid ? this.todosProject : this.todosFolder
+        let todos = this.$store.getters.todoFolder(this.folder).filter(todo => !todo.done)
+        let projects = this.$store.state.todos.filter(todo => todo.list == this.$route.params.uuid)
+        let source = this.$route.params.uuid ? projects : todos
         return omitBy(uniq(flatten(source.map(todo => todo.tags))), isNil)
       },
     },
