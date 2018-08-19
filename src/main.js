@@ -14,7 +14,8 @@ Vue.config.productionTip = false
 const router = new VueRouter({
   mode: 'history',
   routes: [
-    { path: '/', component: Folder, props: {folder: "Inbox"}, exact: true },
+    { path: '/', redirect: '/inbox', exact: true },
+    { path: '/inbox', component: Folder, props: {folder: "Inbox"} },
     { path: '/today', component: Folder, props: {folder: "Today"}},  
     { path: '/upcoming', component: Folder, props: {folder: "Upcoming"} },  
     { path: '/anytime', component: Folder, props: {folder: "Anytime"} },  
@@ -22,6 +23,11 @@ const router = new VueRouter({
     { path: '/project/:uuid', component: Folder, props: true},
     { path: '/area/:uuid', component: Folder, props: true},
   ],
+})
+
+router.beforeEach((to, from, next) => {
+  store.dispatch("setMain", true)
+  next()
 })
 
 new Vue({

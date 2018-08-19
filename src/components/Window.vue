@@ -1,8 +1,8 @@
 <template>
   <div class="window">
-    <div class="sidebar" id="bloop">
+    <div :class="{sidebar: true, fade: main}" id="bloop">
       <div class="list">
-        <router-link to="/" tag="div" class="item">
+        <router-link to="/inbox" tag="div" class="item">
           <Icon image="inbox"></Icon>
           <span>Inbox</span>
           <span class="count">{{countInbox >= 1 ? countInbox : null}}</span>
@@ -31,7 +31,7 @@
         <Container>
           <Draggable v-for="area in areas" :key="area.uuid" class="area">
             <router-link v-if="area.uuid" :to="`/area/${area.uuid}`" tag="div" :ref="`area-${area.uuid}`">
-              <Container @mouseup.native="draggingUpdate(area)" @mouseover.native="mouseOver(area)" @mouseleave.native="mouseLeave(area)" :class="{item: true, hover: areaHover == area.uuid}">
+              <Container @mouseup.native="draggingUpdate(area)" @mouseover.native="mouseOver(area)" @mouseleave.native="mouseLeave(area)" :class="{item: true,  hover: areaHover == area.uuid}">
                 <Icon image="area"></Icon>
                 <span>{{area.name || "New Area"}}</span>
               </Container>
@@ -50,8 +50,13 @@
         </Container>
       </div>
     </div>
-    <div :class="{main: true, white: white}" @click="deselect">
+    <div :class="{main: true, white: white, inview: main}" @click="deselect">
       <div class="workspace">
+        <div class="header" @click="setMain(false)">
+          <!-- <router-link :to="`/inbox`"> -->
+            <TodoIcon image="bracket-left"></TodoIcon>
+          <!-- </router-link> -->
+        </div>
         <router-view :key="$route.fullPath" ref="folder"></router-view>
       </div>
     </div>
@@ -126,7 +131,7 @@
 
   .count { font-weight: bold; color: rgba(0,0,0,.5); margin-left: auto; margin-right: 5px; }
 
-  .router-link-exact-active { background: rgba(0,0,0,.05); }
+  .router-link-exact-active { background: rgba(0,0,0,.05); border-radius: 5px; }
 
   .toolbar { position: fixed; bottom: 0; left: 0; right: 0; display: flex; border-top: 1px solid rgba(0,0,0,.1); }
   .toolbar .button { cursor: pointer; }
@@ -149,18 +154,32 @@
   .red { background: red}
 
   .sidebar .list .item.hover { border-color: #40a3f0; }
+
+  .main.inview { transform: translateX(0); }
+
+  .header { display: flex; margin: 20px; cursor: pointer; user-select: none; }
+
+  @media (max-width: 500px) {
+    .window { display: block; position: relative; width: 100vw; overflow-x: hidden; }
+    .sidebar { width: 100vw; transition: transform .75s ease-in-out; }
+    .sidebar.fade { transform: translateX(-25vw); }
+    .workspace { padding-top: 0; }
+    .main { transition: backgronud-color .5s, transform .75s ease-in-out; position: absolute; top: 0; left: 0; width: 100vw; height: 100%; transform: translateX(100vw); }
+    .toolbar { display: none; }
+  }
 </style>
 
 <script>
   import TodoNew from "./TodoNew.vue"
   import Icon from "./Icon.vue"
+  import TodoIcon from "./TodoIcon.vue"
   import Cal from "./Cal.vue"
   import { groupBy, sortBy, cloneDeep } from 'lodash'
   import { EventBus } from "../event-bus.js"
   import { Container, Draggable } from "vue-smooth-dnd";
 
   export default {
-    components: { TodoNew, Icon, Cal, Container, Draggable },
+    components: { TodoNew, Icon, TodoIcon, Cal, Container, Draggable },
     data() {
       return {
         white: true,
@@ -180,6 +199,9 @@
       })
     },
     methods: {
+      setMain(bool) {
+        this.$store.dispatch("setMain", bool)
+      },
       mouseOver(area) {
         if (this.$store.state.dragging && area) this.areaHover = area.uuid
       },
@@ -232,6 +254,9 @@
       },
     },
     computed: {
+      main() {
+        return this.$store.state.main
+      },
       count() {
         return this.$store.getters.todoFolder("Today").filter(todo => !todo.done).length
       },

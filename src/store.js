@@ -249,6 +249,7 @@ export const store = new Vuex.Store({
     ],
     dragging: null,
     selected: null,
+    main: null,
   },
   getters: {
     todos: (state) => (folder) => {
@@ -297,6 +298,9 @@ export const store = new Vuex.Store({
     },
   },
   actions: {
+    setMain({commit, state}, bool) {
+      commit("setMain", bool)
+    },
     todoSelect({commit, state}, t) {
       commit("todoSelect" , t)
     },
@@ -397,5 +401,8 @@ export const store = new Vuex.Store({
     draggingDestroy(state) {
       state.dragging = null
     },
+    setMain(state, bool) {
+      state.main = bool
+    }
   },
 })

@@ -89,6 +89,14 @@
   .smooth-dnd-container .smooth-dnd-draggable-wrapper { overflow: visible; }
 
   .heading { margin: 20px 60px 10px; color: #3c76cc; font-weight: bold; border-bottom: 1px solid rgba(0,0,0,.1); padding-bottom: 5px; }
+
+  @media (max-width: 500px) {
+    .row.notes { margin-right: 20px; }
+    .day .header { margin-left: 20px; margin-right: 20px; }
+    .row.title, .row.notes, .row.tags, .row.project { margin-left: 20px; }
+    .folder { margin-left: 0; margin-right: 0; }
+    .heading { margin-left: 20px; }
+  }
 </style>
 
 <script>

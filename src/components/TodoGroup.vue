@@ -1,7 +1,7 @@
 <template>
   <div>
     <Container @drop="(e) => onDrop(group, e)"
-               @drag-start="dragStart($event, local); gn = 'todo'"
+               @drag-start="dragStart($event, local)"
                @drag-end="dragEnd($event)"
                group-name="todo"
                drag-class="draggg"
@@ -12,7 +12,7 @@
         <Todo :selected="selected == todo.uuid"
               :area="area"
               :data="todo"
-              :key="todo.uuid"
+              :short="short"
               @select="todoSelect($event)"
               @unfold="todoUnfold"
               @update="todoUpdate($event)"
@@ -24,7 +24,7 @@
 </template>
 
 <style scoped>
-
+  
 </style>
 
 <script>
@@ -57,6 +57,9 @@
       }
     },
     computed: {
+      short() {
+        return window.innerWidth <= 500
+      },
       selected() {
         return this.$store.state.selected
       }
@@ -127,9 +130,9 @@
         this.selected = e
       },
       onDrop: function(group, event) {
+        console.log("onDrop")
         if (event.addedIndex != null && event.removedIndex != null) {
-          this.local.todos = applyDrag([...this.local.todos], event)
-          return
+          this.$set(this.local, 'todos', applyDrag([...this.local.todos], event))
         }
         if (event.addedIndex != null) {
           this.local.todos = applyDrag([...this.local.todos], event)

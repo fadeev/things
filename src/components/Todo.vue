@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div :class="{leave: leave, selected: selected, todo: true, full: full, compact: !full}" :style="{maxHeight: full ? 350 + (local.checklist ? local.checklist.length : 0) * 37 + 'px' : null}" @click.stop="select(); activate(null)" @dblclick.stop="fullToggle(!full)">
+    <div :class="{leave: leave, short: short, selected: selected, todo: true, full: full, compact: !full}" :style="{maxHeight: full ? 350 + (local.checklist ? local.checklist.length : 0) * 37 + 'px' : null}" @click.stop="select(); activate(null)" @dblclick.stop="fullToggle(!full)">
       <div class="block name">
         <div class="check space" @click.stop="todoDone()">
           <Icon :image="buffer.done ? 'box-check' : 'box-empty'" :color="buffer.done ? '#215abc': 'gray'" size="tiny"></Icon>
@@ -13,7 +13,7 @@
             <input ref="todoName" placeholder="New Todo" v-if="full" class="space" type="text" v-model="local.name" @keydown.enter="fullToggle(false)">
             <Icon v-if="!full && local.checklist" class="space" image="checklist" color="#aaa" size="tiny"></Icon>
             <Icon v-if="!full && local.description" class="space" image="document" color="#aaa" size="tiny"></Icon>
-            <div v-if="!full && local.tags" class="space tag" v-for="tag in local.tags" :key="tag">{{tag}}</div>
+            <div v-if="!full && local.tags && !short" class="space tag" v-for="tag in local.tags" :key="tag">{{tag}}</div>
             <div v-if="!full && local.deadline" class="deadline">
               <Icon class="space" image="flag" color="#ff5b79" size="tiny"></Icon>
               <div>today</div>
@@ -180,6 +180,8 @@
   .compact { cursor: pointer; user-select: none; max-height: 40px; padding: 5px 20px; overflow: hidden; transition: padding .5s, max-height .5s, box-shadow .25s, margin .5s; }
   .full { margin: 10px 0; background: white; animation: overflow .5s forwards; box-shadow: 0 2px 7px -1px rgba(0,0,0,.15); }
 
+  .todo.short { border-radius: 0; }
+
   @keyframes overflow {
     0% { overflow: hidden; }
     99% { overflow: hidden; }
@@ -260,7 +262,7 @@
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
   export default {
-    props: ["data", "area", "tags", "selected"],
+    props: ["data", "area", "tags", "selected", "short"],
     components: { Icon, Cal, Container, Draggable },
     data: function() {
       return {
