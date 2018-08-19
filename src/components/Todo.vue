@@ -3,11 +3,12 @@
     <div :class="{leave: leave, selected: selected, todo: true, full: full, compact: !full}" :style="{maxHeight: full ? 350 + (local.checklist ? local.checklist.length : 0) * 37 + 'px' : null}" @click.stop="select(); activate(null)" @dblclick.stop="fullToggle(!full)">
       <div class="block name">
         <div class="check space" @click.stop="todoDone()">
-          <Icon :image="local.done ? 'box-check' : 'box-empty'" :color="local.done ? '#215abc': 'gray'" size="tiny"></Icon>
+          <Icon :image="buffer.done ? 'box-check' : 'box-empty'" :color="buffer.done ? '#215abc': 'gray'" size="tiny"></Icon>
         </div>
         <div class="details">
           <div class="name">
-            <Icon class="space" v-if="isToday() && !area" image="star" color="#fbcd43" size="tiny"></Icon>
+            <Icon class="space" v-if="isToday() && (area === null)" image="star" color="#fbcd43" size="tiny"></Icon>
+            <!-- <div v-if="hasDate() && !isToday() && !area">{{dateDayMonth()}}</div> -->
             <div class="space" v-if="!full">{{local.name || "New Todo"}}</div>
             <input ref="todoName" placeholder="New Todo" v-if="full" class="space" type="text" v-model="local.name" @keydown.enter="fullToggle(false)">
             <Icon v-if="!full && local.checklist" class="space" image="checklist" color="#aaa" size="tiny"></Icon>
@@ -255,6 +256,8 @@
     return result
   };
 
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
   export default {
     props: ["data", "area", "tags", "selected"],
     components: { Icon, Cal, Container, Draggable },
@@ -263,6 +266,7 @@
         local: cloneDeep(this.data),
         buffer: {
           date: null,
+          done: null,
         },
         temp: {
           tag: null,
@@ -287,6 +291,12 @@
       },
     },
     methods: {
+      dateDayMonth() {
+        let date = this.local.date.split('-')
+        let month = months[date[1]]
+        let day = date[2]
+        return `${day} ${month}`
+      },
       select() {
         this.$emit("select", this.local.uuid)
       },
@@ -310,7 +320,6 @@
         })
       },
       checklistDone(item, index) {
-        console.log("checklistDone")
         let checklist = cloneDeep(this.local.checklist)
         checklist[index] = {...item, done: !checklist[index].done}
         this.local.checklist = checklist
@@ -330,12 +339,15 @@
         this.local.checklist = applyDrag(this.local.checklist, item)
       },
       todoDone() {
-        this.$set(this.local, "done", !this.local.done)
-        if (this.local.done) {
+        this.$set(this.buffer, "done", !this.buffer.done)
+        if (this.buffer.done) {
           this.full = false
           setTimeout(() => {
             this.todoLeave()
           }, 1000)
+          setTimeout(() => {
+            this.$set(this.local, "done", true)
+          }, 2000)
         }
       },
       todoLeave() {

@@ -1,14 +1,18 @@
 <template>
   <div>
-    <Container @drop="(e) => onDrop(local.heading ? local.heading.uuid : null, e)" group-name="todo" :get-child-payload="getChildPayload()">
+    <Container @drop="(e) => onDrop(local.heading ? local.heading.uuid : null, group, e)"
+               @drag-start="dragStart($event, local)"
+               @drag-end="dragEnd($event)"
+               group-name="todo"
+               :get-child-payload="getChildPayload()">
       <Draggable style="overflow: visible" v-for="todo in local.todos" :key="todo.uuid">
         <Todo :selected="selected == todo.uuid"
-              @select="todoSelect($event)"
-              @unfold="todoUnfold"
-              @update="todoUpdate($event)"
               :area="area"
               :data="todo"
               :key="todo.uuid"
+              @select="todoSelect($event)"
+              @unfold="todoUnfold"
+              @update="todoUpdate($event)"
               ref="todo">
         </Todo>
       </Draggable>
@@ -16,8 +20,8 @@
   </div>
 </template>
 
-<style scoped>
-
+<style>
+  .smooth-dnd-ghost { width: 30px; display: block; }
 </style>
 
 <script>
@@ -43,7 +47,7 @@
 
   export default {
     components: { Todo, Container, Draggable },
-    props: ["data", "area"],
+    props: ["data", "area", "group"],
     data: function() {
       return {
         local: cloneDeep(this.data),
@@ -76,7 +80,19 @@
         })
       })
     },
-    methods: { 
+    methods: {
+      dragStart(event, source) {
+        if (event.isSource) {
+          this.$store.dispatch("draggingCreate", event.payload)
+        }
+      },
+      dragEnd() {
+        if (this.$store.state.dragging) {
+          this.$store.dispatch("todoUpdate", this.$store.state.dragging).then(() => {
+            this.$store.dispatch("draggingDestroy")
+          })
+        }
+      },
       todoSelect(uuid) {
         this.$store.dispatch("todoSelect", {uuid: uuid})
       },
@@ -107,28 +123,17 @@
       select(e) {
         this.selected = e
       },
-      onDrop: function(uuid, event) {
-        // if (event.removedIndex != null && event.addedIndex != null) {
-        //   this.dat.todos.splice(event.removedIndex, 1)
-        //   this.dat.todos = applyDrag([...this.dat.todos], event)
-        //   return
-        // }
+      onDrop: function(heading_uuid, local, event) {
         if (event.addedIndex != null && event.removedIndex != null) {
           this.local.todos = applyDrag([...this.local.todos], event)
           return
         }
         if (event.addedIndex != null) {
           this.local.todos = applyDrag([...this.local.todos], event)
-          this.$store.dispatch("todoUpdate", {...event.payload, heading: uuid})
+          this.$store.dispatch("todoUpdate", {...event.payload, heading: heading_uuid, list: local.uuid})
         }
         if (event.removedIndex != null) {
-          // this.dat.todos = this.dat.todos.filter(x => {
-          //   return x.uuid != this.dat.todos[event.removedIndex].uuid
-          // })
-          // this.$refs[event.payload.uuid][0].fold()
-          // setTimeout(() => {
-            this.local.todos.splice(event.removedIndex, 1)
-          // }, 2000)
+          this.local.todos.splice(event.removedIndex, 1)
         }
       },
     },

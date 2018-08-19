@@ -31,7 +31,7 @@
         <Container>
           <Draggable v-for="area in areas" :key="area.uuid" class="area">
             <router-link v-if="area.uuid" :to="`/area/${area.uuid}`" tag="div" :ref="`area-${area.uuid}`">
-              <Container @mouseup.native="draggingUpdate(area)" class="item">
+              <Container @mouseup.native="draggingUpdate(area)" @mouseover.native="mouseOver(area)" @mouseleave.native="mouseLeave(area)" :class="{item: true, hover: areaHover == area.uuid}">
                 <Icon image="area"></Icon>
                 <span>{{area.name || "New Area"}}</span>
               </Container>
@@ -39,7 +39,7 @@
             <Container @drag-start="dragStart($event, area.projects)" @drag-end="dragEnd($event)" :get-child-payload="(i) => i">
               <Draggable v-for="project in area.projects" :key="project.uuid">
                 <router-link :to="`/project/${project.uuid}`" tag="div">
-                  <Container @mouseup.native="draggingUpdate(project)" class="item">
+                  <Container @mouseup.native="draggingUpdate(project)" class="item" @mouseover.native="mouseOver(project)" @mouseleave.native="mouseLeave(project)" :class="{item: true, hover: areaHover == project.uuid}">
                     <Icon image="project"></Icon>
                     <span>{{project.name || "New Project"}}</span>
                   </Container>
@@ -108,7 +108,7 @@
   .window { display: flex; height: 100vh; font-weight: 400; font-family: "Roboto", sans-serif; color: rgba(0,0,0,.75); }
   .sidebar { background: rgb(245, 246, 247); width: 250px; flex-shrink: 0; overflow-y: hidden; }
   .sidebar .list { margin: 20px; }
-  .sidebar .list .item { overflow: hidden; border-radius: 5px; padding: 5px; cursor: pointer; user-select: none; margin-bottom: 5px; display: flex; align-items: center; }
+  .sidebar .list .item { overflow: hidden; border: 2px solid transparent; border-radius: 5px; padding: 3px; cursor: pointer; user-select: none; margin-bottom: 5px; display: flex; align-items: center; }
   .main { transition: background-color .5s; overflow-y: scroll; background: rgb(251, 250, 251); display: flex; flex-direction: column; justify-content: space-between; flex-grow: 1; }
   .workspace { margin-bottom: 100px; padding-top: 60px; }
   .workspace > .new { margin-left: 40px; margin-right: 40px; margin-bottom: 0; }
@@ -147,6 +147,8 @@
   .fade-leave-to { opacity: 0; transform: scale(.95) translateY(2px); }
 
   .red { background: red}
+
+  .sidebar .list .item.hover { border-color: #40a3f0; }
 </style>
 
 <script>
@@ -164,6 +166,7 @@
         white: true,
         newListMenu: null,
         calendar: null,
+        areaHover: null,
       }
     },
     mounted() {
@@ -177,10 +180,15 @@
       })
     },
     methods: {
+      mouseOver(area) {
+        if (this.$store.state.dragging && area) this.areaHover = area.uuid
+      },
+      mouseLeave(area) {
+        this.areaHover = null
+      },
       setDate(date) {
         let todo = cloneDeep(this.$store.getters.todoById(this.$store.state.selected))
         todo.date = date
-        console.log(todo)
         this.$store.dispatch("todoUpdate", todo)
       },
       todoDate() {
@@ -225,10 +233,10 @@
     },
     computed: {
       count() {
-        return this.$store.getters.todoFolder("Today").length
+        return this.$store.getters.todoFolder("Today").filter(todo => !todo.done).length
       },
       countInbox() {
-        return this.$store.getters.todoFolder("Inbox").length
+        return this.$store.getters.todoFolder("Inbox").filter(todo => !todo.done).length
       },
       projects() {
         return this.$store.state.projects;

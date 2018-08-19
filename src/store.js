@@ -55,7 +55,7 @@ export const store = new Vuex.Store({
       {
         name: "Power adapter",
         tags: ["Work", "Hard"],
-        date: "2018-07-30",
+        date: "2018-08-19",
         list: "510",
         uuid: "4",
       },
@@ -76,6 +76,7 @@ export const store = new Vuex.Store({
         tags: ["Work", "Hard"],
         list: "89",
         uuid: "7",
+        date: "2018-08-19",
       },
       {
         name: "Confirm conference call for Wednesday",

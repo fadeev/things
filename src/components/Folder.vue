@@ -25,18 +25,18 @@
     <div v-if="folder == 'Inbox'">
       <TodoGroup class="folder" :data="{todos: todosFolder}"></TodoGroup>
     </div>
-    <div v-if="folder == 'Today'" class="folder" @click="deselect()">
-      <TodoGroup :area="true" :data="todayTodos"></TodoGroup>
-      <div v-for="(todos, project) in filterBy($store.state.projects, tagFilter(todosFolder))" :key="project">
+    <div v-if="folder == 'Today' || folder == 'Someday' || folder =='Anytime'" class="folder" @click="deselect()">
+      <TodoGroup :area="true" :data="folderTodos"></TodoGroup>
+      <div v-for="project in folderTodosProjects" :key="project.project.uuid">
         <div class="row project">
           <Icon image="project"></Icon>
-          <div>{{project}}</div>
+          <div>{{project.project.name}}</div>
         </div>
-        <TodoGroup :data="{todos: todos}" :area="true"></TodoGroup>
+        <TodoGroup :data="{todos: project.todos}" :group="project.project"></TodoGroup>
       </div>
     </div>
     <div v-if="folder == 'Upcoming'">
-      <div class="row day" v-for="dayTodos in groupByDate(tagFilter(todosFolder))" :key="dayTodos.date">
+      <div class="row day" v-for="dayTodos in upcomingTodos" :key="dayTodos.date">
         <div class="header">
           <div class="number">{{dayTodos.date.split('-')[2]}}</div>
           <div class="day-of-week">{{day(dayTodos.date)}}</div>
@@ -44,37 +44,20 @@
         <TodoGroup class="folder" :data="dayTodos"></TodoGroup>
       </div>
     </div>
-    <div v-if="folder == 'Someday' || folder == 'Anytime'">
-      <TodoGroup class="folder" :data="{todos: tagFilter(todosFolder.filter(t => !t.list))}"></TodoGroup>
-      <div class="folder" v-for="(todos, project) in filterBy($store.state.projects, tagFilter(todosFolder))" :key="project">
-        <div class="row project">
-          <Icon image="project"></Icon>
-          <div>{{project}}</div>
-        </div>
-        <TodoGroup :data="{todos: todos}"></TodoGroup>
-      </div>
-      <div class="folder" v-for="(todos, project) in filterBy($store.state.areas, tagFilter(todosFolder))" :key="project">
-        <div class="row project">
-          <Icon image="project"></Icon>
-          <div>{{project}}</div>
-        </div>
-        <TodoGroup :data="{todos: todos}"></TodoGroup>
-      </div>
-    </div>
     <div v-if="insideList(this.$store.state.projects)">
-      <div v-for="todos in projectGroup(tagFilter(todosProject))" :key="todos.heading ? todos.heading.uuid : 0">
+      <div v-for="todos in projectTodos" :key="todos.heading ? todos.heading.uuid : 0">
         <div v-if="todos.heading" class="heading">{{todos.heading.name}}</div>
         <TodoGroup class="folder" :data="todos" ref="group"></TodoGroup>
       </div>
     </div>
     <div v-if="insideList(this.$store.state.areas)">
-      <div v-for="project in projects($route.params.uuid)" :key="project.uuid">
+      <div v-for="project in areaTodos" :key="project.uuid">
         <div class="row project">
           <Icon image="project"></Icon>
           <div>{{project.name}}</div>
         </div>
       </div>
-      <TodoGroup class="folder" :data="{todos: tagFilter(todosArea)}"></TodoGroup>
+      <TodoGroup class="folder" :data="{todos: todosArea}"></TodoGroup>
     </div>
   </div>
 </template>
@@ -111,7 +94,7 @@
 <script>
   import { Route } from 'vue-router'
 
-  import { map, includes, orderBy, uniq, flatten, keys, value, omitBy, isNil, cloneDeep, find, some, groupBy, forOwn, mapKeys, mapValues, values, sortBy, omit } from 'lodash'
+  import { toPairs, map, includes, orderBy, uniq, flatten, keys, value, omitBy, isNil, cloneDeep, find, some, groupBy, forOwn, mapKeys, mapValues, values, sortBy, omit } from 'lodash'
 
   import TodoNew from "./TodoNew.vue"
   import Todo from "./Todo.vue"
@@ -174,28 +157,60 @@
       }
     },
     computed: {
-      todayTodos() {
+      folderTodos() {
+        let list = this.$store.state.projects.map(item => item.uuid)
         return {
-          todos: this.tagFilter(this.excludeProjects(this.todosFolder))
+          todos: this.todosFolder.filter(todo => !includes(list, todo.list))
         }
       },
-      todosAll() {
-        return this.$store.getters.todoFolder(this.folder).filter(todo => {
-          return todo.list == this.$route.params.uuid
+      folderTodosProjects() {
+        let projects = this.$store.state.projects.map(item => item.uuid)
+        return map(groupBy(this.todosFolder.filter(todo => {
+          return todo.list && includes(projects, todo.list)
+        }), "list"), (todos, project_uuid) => {
+          return {
+            project: find(this.$store.state.projects, {uuid: project_uuid}),
+            todos: todos,
+          }
+        })
+      },
+      upcomingTodos() {
+        return sortBy(map(groupBy(this.todosFolder, "date"), (v, k) => {
+          return {date: k, todos: v}
+        }), ["date"])
+      },
+      areaTodos() {
+        return this.$store.state.projects.filter(project => {
+          return project.area == this.$route.params.uuid
+        })
+      },
+      projectTodos() {
+        return sortBy(values(mapValues(groupBy(this.todosProject, "heading"), (value, key) => {
+          return {todos: value, heading: find(this.$store.state.headings, {uuid: key})}
+        })), heading => {
+          return heading.heading ? 1 : 0
         })
       },
       todosProject() {
         return this.$store.state.todos.filter(todo => {
           return todo.list == this.$route.params.uuid
+        }).filter(todo => !todo.done).filter(todo => {
+          return this.tagSelected ? includes(todo.tags, this.tagSelected) : true
         })
       },
       todosFolder() {
-        return this.$store.getters.todoFolder(this.folder)
+        return this.$store.getters.todoFolder(this.folder).filter(todo => {
+          return !todo.done
+        }).filter(todo => {
+          return this.tagSelected ? includes(todo.tags, this.tagSelected) : true
+        })
       },
       todosArea() {
         let list = this.$store.state.areas.map(item => item.uuid)
         return this.$store.state.todos.filter(todo => {
           return includes(list, todo.list) && todo.list == this.$route.params.uuid
+        }).filter(todo => !todo.done).filter(todo => {
+          return this.tagSelected ? includes(todo.tags, this.tagSelected) : true
         })
       },
       tags() {
@@ -210,48 +225,6 @@
       },
       todoUpdate(todo) {
         this.$store.dispatch("todoUpdate", todo)
-      },
-      // dragEnter(list) {
-      //   if (this.$store.state.dragging && list) {
-      //     this.$store.dispatch("draggingCreate", {...this.$store.state.dragging, heading: list.uuid})
-      //   }
-      //   if (list == null) {
-      //     this.$store.dispatch("draggingCreate", omit({...this.$store.state.dragging}, "heading"))
-      //   }
-      // },
-      // dragLeave(list) {
-      //   if (this.$store.state.dragging) {
-      //     this.$store.dispatch("draggingCreate", omit({...this.$store.state.dragging}, "heading"))
-      //   }
-      // },
-      // onDrop(event, list) {
-      //   // if (event.removedIndex) {
-      //   //   this.$store.dispatch("draggingCreate", list[event.removedIndex])
-      //   // }
-      //   if (event.removedIndex) {
-      //     // let todo = list[event.removedIndex]
-      //     // this.$store.dispatch("draggingDestroy").then(() => {
-      //     //   this.$store.dispatch("draggingCreate", todo).then(() => {
-      //     //     this.$store.dispatch("todoUpdate", omit({...todo}, "heading"))
-      //     //   })
-      //     // })
-      //   }
-      //   if (event.addedIndex != null) {
-      //     // let todo = list ? {...this.$store.state.dragging, heading: list.uuid} : omit({...this.$store.state.dragging}, "heading")
-      //     // this.$store.dispatch("todoUpdate", todo).then(() => {
-      //     //   this.$store.dispatch("draggingDestroy")
-      //     // })
-      //     // console.log(event, list, todo)
-      //     //this.$store.dispatch("todoUpdate", omit({...todo}, "heading"))
-      //   }
-      //   // this.$store.dispatch("draggingDestroy")
-      // },
-      projectGroup(todos) {
-        return sortBy(values(mapValues(groupBy(todos, "heading"), (value, key) => {
-          return {todos: value, heading: find(this.$store.state.headings, {uuid: key})}
-        })), heading => {
-          return heading.heading ? 1 : 0
-        })
       },
       getChildPayloadTodos() {
         return (index) => {
@@ -273,31 +246,14 @@
           })
         }
       },
-      projects(uuid) {
-        return this.$store.state.projects.filter(project => project.area == uuid)
-      },
-      tagFilter(todos) {
-        return todos.filter(todo => {
-          return this.tagSelected ? includes(todo.tags, this.tagSelected) : true
-        })
-      },
       insideList(list) {
         return includes(list.map(item => item.uuid), this.$route.params.uuid)
-      },
-      excludeProjects(todos) {
-        let list = this.$store.state.projects.map(item => item.uuid)
-        return todos.filter(todo => !includes(list, todo.list))
       },
       filterBy(source, todos) {
         let list = source.map(item => item.uuid)
         return mapKeys(groupBy(todos.filter(todo => { return todo.list && includes(list, todo.list) }), "list"), (value, key) => {
           return find(source, {uuid: key}).name
         })
-      },
-      groupByDate(todos) {
-        return sortBy(map(groupBy(todos, "date"), (v, k) => {
-          return {date: k, todos: v}
-        }), ["date"])
       },
       whiteUpdate() {
         let array = [];
