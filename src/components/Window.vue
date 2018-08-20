@@ -157,7 +157,7 @@
 
   .main.inview { transform: translateX(0); }
 
-  .header { display: flex; margin: 20px; cursor: pointer; user-select: none; }
+  .header { display: none; margin: 20px; cursor: pointer; user-select: none; }
 
   @media (max-width: 500px) {
     .window { display: block; position: relative; width: 100vw; overflow-x: hidden; }
@@ -166,6 +166,7 @@
     .workspace { padding-top: 0; }
     .main { transition: backgronud-color .5s, transform .75s ease-in-out; position: absolute; top: 0; left: 0; width: 100vw; height: 100%; transform: translateX(100vw); }
     .toolbar { display: none; }
+    .header { display: flex; }
   }
 </style>
 
