@@ -70,7 +70,7 @@
   .row.title input { padding: 0; border: none; background: none; font-size: 1em; font-weight: bold; font-family: "Roboto"; outline: none; }
   .row.notes { margin: 0 60px 30px; }
   .row.notes input { font-size: 1em; background: none; border: none; padding: none; outline: none; }
-  .row.tags { margin: 20px 60px 30px; display: flex; }
+  .row.tags { margin: 20px 60px 30px; display: flex; max-width: 100vw; overflow: hidden; }
   .row.tags .tag { border: 1px solid transparent; cursor: pointer; color: rgba(0,0,0,.35); font-weight: bold; border-radius: 1000px; padding: 0 10px; margin-right: 5px; }
   .row.tags .tag.selected { background: rgba(0,0,0,.25); color: white; }
   .row.tags .tag.selected:hover { border-color: rgba(0,0,0,0); }
