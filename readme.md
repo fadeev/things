@@ -1,4 +1,4 @@
-# things
+# things.vue
 
 ## Project setup
 ```
