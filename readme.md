@@ -1,9 +1,29 @@
-# Things.vue
+# things
 
-Webpage: http://fadeev.org/2018/things
+## Project setup
+```
+npm install
+```
 
-Demo: http://things.surge.sh/
+### Compiles and hot-reloads for development
+```
+npm run serve
+```
 
-Things.vue is a task manager web application that replicates design and fuctionality of Things by Cultured Code. This project does not use any code or design elements from the original application. It is written in JavaScript and uses Vue.js framework.
+### Compiles and minifies for production
+```
+npm run build
+```
 
-<img src="/img/screenshot.png">
+### Run your tests
+```
+npm run test
+```
+
+### Lints and fixes files
+```
+npm run lint
+```
+
+### Customize configuration
+See [Configuration Reference](https://cli.vuejs.org/config/).
