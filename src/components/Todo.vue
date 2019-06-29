@@ -41,9 +41,9 @@
                      width="10"
                      height="10"/>
           <div class="todo__list__main__title__tag-list" v-if="!expanded">
-            <div class="todo__list__main__title__tag-list__item" v-for="tag in tagListLocal" :key="tag.id">
+            <!-- <div class="todo__list__main__title__tag-list__item" v-for="tag in tagListLocal" :key="tag.id">
               {{tag.name}}
-            </div>
+            </div> -->
           </div>
           <base-icon class="todo__list__main__title__icon"
                      v-if="todo.deadline && !expanded"
@@ -60,32 +60,7 @@
               <todo-checklist style="padding: 0 35px" v-model="todo.checklist"/>
             </transition>
             <transition name="slide">
-              <div class="todo__list__main__body" v-if="expanded && todo.tagList && todo.tagList.length > 0">
-                <div class="todo__list__main__body__tag-list">
-                  <div class="todo__list__main__body__tag-list__item"
-                       v-for="tag in todo.tagList.map(tag => find(tagList, ['id', tag]))"
-                       tabindex="0"
-                       @keydown.backspace="tagRemove(tag)"
-                       :key="tag.id">
-                    {{tag.name}}
-                  </div>
-                  <div>
-                    <input placeholder="Tag"
-                           ref="tag-input"
-                           class="todo__list__main__body__tag-list__input"
-                           type="text"
-                           v-model="tagSearch"
-                           @keyup.backspace="!$event.target.value ? todo.tagList.pop() : null"
-                           @keyup.enter="$event.target.value ? tagAdd({name: $event.target.value}) : null"
-                           @click.stop="mode = 'button-tags'">
-                    <transition name="fade">
-                      <popup-tags v-if="mode == 'button-tags'"
-                                  :value="tagListFiltered()"
-                                  @input="tagAdd($event); $refs['tag-input'].focus()"/>
-                    </transition>
-                  </div>
-                </div>
-              </div>
+              <todo-tag-list class="todo__list__main__body" v-model="todo.tagList" :tags="tagList"/>
             </transition>
             <transition name="slide">
               <div class="todo__list__main__body" v-if="expanded && todo.date">
@@ -223,9 +198,6 @@
   .todo__list__main__title__text:empty:before{ color: #777; content: attr(placeholder); display: block; }
   .todo__list__main__title__icon { margin: 0 3px; }
 
-  .todo__list__main__title__tag-list { display: flex; }
-  .todo__list__main__title__tag-list__item { color: rgba(0,0,0,.3); font-size: 11px; border: 1px solid rgba(0,0,0,.2); border-radius: 1000px; padding: 0 7px; margin: 0 2px; }
-
   .sortable-ghost { opacity: 1 !important; background-color: #f0f0f0; border-radius: 3px; }
   .sortable-ghost * { opacity: 0; }
   .sortable-fallback { background-color: #cee2fe; opacity: 1 !important; border-radius: 3px; }
@@ -258,11 +230,6 @@
   .slide-enter { transform: translateX(50px); opacity: 0; }
   .slide-enter-to { transform: translateX(0px); opacity: 1; }
 
-  .todo__list__main__body__tag-list { margin: 10px 0; display: flex; flex-wrap: wrap; }
-  .todo__list__main__body__tag-list__item { border-radius: 1000px; background-color: #bce1d3; color: #298461; margin: 2px 4px 2px 0; font-size: 13px; font-weight: 500; padding: 1px 10px; }
-  .todo__list__main__body__tag-list__input { font-family: inherit; font-size: inherit; border: none; background-color: transparent; outline: none; }
-  .todo__list__main__body__tag-list__item:focus { background-color: #bed7fb; color: #5081c6; outline: none; }
-
   .fade-enter-active { transition: all .1s; transform-origin: top; }
   .fade-enter { transform: scale(.9); opacity: .9; }
   .fade-enter-to { transform: scale(1); opacity: 1; }
@@ -280,6 +247,7 @@
   import BaseIcon from '@/components/BaseIcon.vue'
   import TodoNotes from '@/components/TodoNotes.vue'
   import TodoChecklist from '@/components/TodoChecklist.vue'
+  import TodoTagList from '@/components/TodoTagList.vue'
 
   export default {
     components: {
@@ -292,6 +260,7 @@
       TransitionExpand,
       TodoNotes,
       TodoChecklist,
+      TodoTagList,
     },
     props: {
       value: Object,
@@ -322,9 +291,9 @@
       tagList() {
         return this.$store.state.entityList.filter(entity => entity.type == 'tag')
       },
-      tagListLocal() {
-        return this.todo.tagList && this.todo.tagList.map(tag => find(this.tagList, ['id', tag]))
-      },
+      // tagListLocal() {
+      //   return this.todo.tagList && this.todo.tagList.map(tag => find(this.tagList, ['id', tag]))
+      // },
     },
     methods: {
       entityUpdate(todo) {
@@ -336,29 +305,6 @@
           const matchesSearch = tag.name && this.tagSearch && tag.name.toLowerCase().match(this.tagSearch.toLowerCase())
           return notYetAdded && matchesSearch
         })
-      },
-      tagRemove(tag) {
-        this.todo.tagList = filter(this.todo.tagList, t => t != tag.id)
-      },
-      async tagAdd(tag) {
-        this.tagSearch = null
-        let inStore
-        let id = tag.id
-        if (tag.name) {
-          inStore = includes(this.tagList.map(tag => tag.name.toLowerCase()), tag.name.toLowerCase())
-        }
-        if (tag.id && !includes(this.todo.tagList, id)) {
-          id = tag.id
-        }
-        if (!tag.id && tag.name && inStore) {
-          id = find(this.tagList, (t) => t.name.toLowerCase() == tag.name.toLowerCase()).id
-        }
-        if (!tag.id && tag.name && !inStore) {
-          id = (await this.$store.dispatch('entityCreate', {type: 'tag', name: tag.name})).id
-        }
-        if (!includes(this.todo.tagList, id)) {
-          this.todo.tagList = [...this.todo.tagList, id]
-        }
       },
       select() {
         if (this.expanded) {
@@ -377,33 +323,6 @@
         this.$set(this.todo, 'checklist', [{title, id: uuidv1()}])
         this.$nextTick(() => this.$refs[`checklist-${0}`][0].focus())
       },
-      // checklistPush(index) {
-      //   this.todo.checklist.splice(index+1, 0, {id: uuidv1()})
-      //   this.$nextTick(() => this.$refs[`checklist-${index+1}`][0].focus())
-      // },
-      // checklistFocus(index, event) {
-      //   const cursorPosition = event.target.selectionStart
-      //   console.log(event)
-      //   event.preventDefault()
-      //   const sibling = this.$refs[`checklist-${index}`]
-      //   if (sibling && sibling[0]) {
-      //     sibling[0].focus()
-      //     sibling[0].selectionStart = cursorPosition
-      //     sibling[0].selectionEnd = cursorPosition
-      //   }
-      // },
-      // checklistBackspace(item, event, index) {
-      //   const prevChecklist = this.$refs[`checklist-${index-1}`] && this.$refs[`checklist-${index-1}`][0]
-      //   if (event.target.value == "") {
-      //     this.$set(this.todo, 'checklist', this.todo.checklist.filter(c => c.id != item.id))
-      //     prevChecklist && prevChecklist.focus()
-      //     event.preventDefault()
-
-      //   }
-      // },
-      // checklistMoved(list) {
-      //   this.todo.checklist = list
-      // },
       toolbarClick(mode) {
         const input = this.$refs[mode]
         if (input) input.focus()

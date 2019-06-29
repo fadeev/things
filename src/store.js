@@ -80,6 +80,7 @@ export default new Vuex.Store({
         notes: 'You’re looking at a to-do! Complete it by clicking the checkbox on the left. Completed to-dos are collected at the bottom of your project.',
         projectId: '9c3255cd-f203-43bf-a9b7-28a206f1a9a4',
         headingId: '39687a49-9d0b-4a0c-8ffe-2b4f927a8010',
+        // tagList: ['29687a49-9d0b-4a0c-8ffe-7b4f127a8110'],
       },
       {
         id: 'a97fbee7-6614-2baa-a670-f9142c35b365',
