@@ -41,6 +41,7 @@
 <script>
   import draggable from "vuedraggable"
   import Todo from "@/components/Todo.vue"
+  import { findIndex } from 'lodash'
 
   export default {
     components: { draggable, Todo, },

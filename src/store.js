@@ -28,7 +28,7 @@ export default new Vuex.Store({
       {
         id: '9c3255cd-f203-43bf-a9b7-28a206f1a9a4',
         type: 'project',
-        name: 'Vacation in Rome',
+        name: 'Meet Things Web',
         notes: 'This project shows you everything you need to know to hit the ground running. Don’t hesitate to play around in it – you can always create a new one from the help menu.',
         areaId: 'a7685e81-4783-4600-9756-053678b4f702',
       },
@@ -74,20 +74,49 @@ export default new Vuex.Store({
       },
       // TODOS
       {
-        id: 'a97fbee7-6614-4baa-a670-f9142c35b365',
+        id: 'a97fbee7-6614-1baa-a670-f9142c35b365',
         type: 'todo',
         name: 'Double-click this to-do',
         notes: 'You’re looking at a to-do! Complete it by clicking the checkbox on the left. Completed to-dos are collected at the bottom of your project.',
         projectId: '9c3255cd-f203-43bf-a9b7-28a206f1a9a4',
-        headingId: '7a138735-d927-46bb-90f4-2b2a4f48a315'
+        headingId: '39687a49-9d0b-4a0c-8ffe-2b4f927a8010',
+      },
+      {
+        id: 'a97fbee7-6614-2baa-a670-f9142c35b365',
+        type: 'todo',
+        name: 'Create a new to-do',
+        notes: 'Your turn – just hit ⌘N on your keyboard.',
+        projectId: '9c3255cd-f203-43bf-a9b7-28a206f1a9a4',
+        headingId: '39687a49-9d0b-4a0c-8ffe-2b4f927a8010',
+      },
+      {
+        id: 'a97fbee7-6614-3baa-a670-f9142c35b365',
+        type: 'todo',
+        name: 'Add this to-do to your Today list',
+        notes: 'Click the calendar button below to plan when you’ll do this to-do. Choose Today.',
+        projectId: '9c3255cd-f203-43bf-a9b7-28a206f1a9a4',
+        headingId: '39687a49-9d0b-4a0c-8ffe-2b4f927a8010',
+      },
+      {
+        id: 'a97fbee7-6614-4baa-a670-f9142c35b365',
+        type: 'todo',
+        name: 'Show your calendar events',
+        notes: 'You can connect your calendars to Things and see all of your events and to-dos together. Go to Things → Preferences → Calendar Events to turn it on.',
+        projectId: '9c3255cd-f203-43bf-a9b7-28a206f1a9a4',
+        headingId: '49687a49-9d0b-4a0c-8ffe-2b4f927a8010',
       },
       {
         id: '20e3a148-0229-47a1-9fc4-e3de0aad4515',
         type: 'todo',
-        name: 'Create a new to-do',
-        notes: "",
+        name: 'Enable the Today Widget',
+        notes: "Things’ widget lets you quickly view your Today list while working in other apps. To enable it:",
         projectId: '9c3255cd-f203-43bf-a9b7-28a206f1a9a4',
-        headingId: '7a138735-d927-46bb-90f4-2b2a4f48a315'
+        headingId: '49687a49-9d0b-4a0c-8ffe-2b4f927a8010',
+        checklist: [
+          { id: '7a138735-d927-46bb-91f4-2b2a4f48a325', title: 'Open Notification Center on the right side of your screen.', },
+          { id: '7a138735-d927-46bb-94f4-2b2a4f42a315', title: 'At the bottom, there’s a button to manage your widgets.', },
+          { id: '7a138735-d927-46bb-94f4-0b2a4f38a315', title: 'Find Things and add it.', },
+        ],
       },
       // HEADINGS
       {
@@ -125,6 +154,28 @@ export default new Vuex.Store({
         id: '29687a49-9d0b-4a0c-8ffe-2b4f927a8010',
         type: 'tag',
         name: 'Pending',
+      },
+      // HEADINGS
+      {
+        id: '49687a49-9d0b-4a0c-8ffe-2b4f927a8010',
+        type: 'heading',
+        name: 'Tune your setup',
+        order: 2,
+        projectId: '9c3255cd-f203-43bf-a9b7-28a206f1a9a4',
+      },
+      {
+        id: '39687a49-9d0b-4a0c-8ffe-2b4f927a8010',
+        type: 'heading',
+        name: 'Learn the basics',
+        order: 1,
+        projectId: '9c3255cd-f203-43bf-a9b7-28a206f1a9a4',
+      },
+      {
+        id: '59687a49-9d0b-4a0c-8ffe-2b4f927a8010',
+        type: 'heading',
+        name: 'Boost your productivity',
+        order: 3,
+        projectId: '9c3255cd-f203-43bf-a9b7-28a206f1a9a4',
       },
     ],
   },

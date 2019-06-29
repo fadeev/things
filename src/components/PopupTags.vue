@@ -13,7 +13,7 @@
 </template>
 
 <style lang="scss" scoped>
-  .todo__list__toolbar__popup { z-index: 1000; box-shadow: 0 5px 10px 0 rgba(0,0,0,.2); z-index: 1000; padding: 6px 0; position: absolute; color: white; background-color: #2b323b; margin-top: 3px; margin-bottom: 10px; width: 230px; border-radius: 7px; }
+  .todo__list__toolbar__popup { max-height: 180px; overflow-y: scroll; z-index: 1000; box-shadow: 0 5px 10px 0 rgba(0,0,0,.2); z-index: 1000; padding: 6px 0; position: absolute; color: white; background-color: #2b323b; margin-top: 3px; margin-bottom: 10px; width: 230px; border-radius: 7px; }
   .todo__list__toolbar__popup__item { margin: 0 6px; display: flex; align-items: center; border-radius: 4px; padding: 3px 4px; }
   .todo__list__toolbar__popup__item:hover { background-color: #5d9cf5; }
   .window__sidebar__list__item__text { margin: 0 5px; font-weight: 600; }

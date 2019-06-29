@@ -2,6 +2,35 @@
   <div>
     <div class="window">
       <div class="window__drag"></div>
+      <div class="window__new-project" v-if="windowProject">
+        <div class="window__new-project__item" @click="projectCreate(); windowProject = false">
+          <div class="window__new-project__item__icon">
+            <base-icon image="circle-2-svg" width="14" height="14" fill="#a3c9ff"/>
+          </div>
+          <div>
+            <div>
+              New Project
+            </div>
+            <div class="window__new-project__item__desc">
+              Define a goal, then work towards it one to-do at a time.
+            </div>
+          </div>
+        </div>
+        <div class="window__new-project__item__ruler"></div>
+        <div class="window__new-project__item" @click="areaCreate(); windowProject = false">
+          <div class="window__new-project__item__icon">
+            <base-icon image="cube-2-svg" width="14" height="14" fill="#79bca2"/>
+          </div>
+          <div>
+            <div>
+              New Area
+            </div>
+            <div class="window__new-project__item__desc">
+              Group your projects and to-dos based on different responsibilities, such as Family or Work.
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="window__sidebar">
         <div class="window__sidebar__list">
           <div class="window__sidebar__list__scroll">
@@ -67,7 +96,7 @@
         </div>
         <div class="window__toolbar">
           <div class="window__toolbar__panel">
-            <div class="window__toolbar__panel__item" @click="projectCreate">
+            <div class="window__toolbar__panel__item" @click="windowProject = !windowProject">
               <svg class="window__toolbar__panel__item__icon" xmlns="http://www.w3.org/2000/svg" fill="#585c61" width="11" height="11" viewBox="0 0 24 24"><path d="M24 10h-10v-10h-4v10h-10v4h10v10h4v-10h10z"/></svg>
               <div class="window__toolbar__panel__item__text">New List</div>
             </div>
@@ -81,13 +110,13 @@
             <div class="window__toolbar__panel__item window__toolbar__panel__item_center" @click="entityCreate('todo')">
               <svg class="window__toolbar__panel__item__icon" xmlns="http://www.w3.org/2000/svg" fill="#585c61" width="11" height="11" viewBox="0 0 24 24"><path d="M24 10h-10v-10h-4v10h-10v4h10v10h4v-10h10z"/></svg>
             </div>
-            <div class="window__toolbar__panel__item window__toolbar__panel__item_center" @click="projectCreate">
+            <div class="window__toolbar__panel__item window__toolbar__panel__item_center">
               <svg class="window__toolbar__panel__item__icon" xmlns="http://www.w3.org/2000/svg" fill="#585c61" width="13" height="13" viewBox="0 0 24 24"><path d="M20 19h-4v-4h4v4zm-6-10h-4v4h4v-4zm6 0h-4v4h4v-4zm-12 6h-4v4h4v-4zm16-14v22h-24v-22h24zm-2 6h-20v14h20v-14zm-8 8h-4v4h4v-4zm-6-6h-4v4h4v-4z"/></svg>
             </div>
-            <div class="window__toolbar__panel__item window__toolbar__panel__item_center" @click="projectCreate">
+            <div class="window__toolbar__panel__item window__toolbar__panel__item_center">
               <svg class="window__toolbar__panel__item__icon" xmlns="http://www.w3.org/2000/svg" fill="#585c61" width="12" height="12" viewBox="0 0 24 24"><path d="M13.025 1l-2.847 2.828 6.176 6.176h-16.354v3.992h16.354l-6.176 6.176 2.847 2.828 10.975-11z"/></svg>
             </div>
-            <div class="window__toolbar__panel__item window__toolbar__panel__item_center" @click="projectCreate">
+            <div class="window__toolbar__panel__item window__toolbar__panel__item_center">
               <svg class="window__toolbar__panel__item__icon" xmlns="http://www.w3.org/2000/svg" fill="#585c61" width="12" height="12" viewBox="0 0 24 24"><path d="M23.809 21.646l-6.205-6.205c1.167-1.605 1.857-3.579 1.857-5.711 0-5.365-4.365-9.73-9.731-9.73-5.365 0-9.73 4.365-9.73 9.73 0 5.366 4.365 9.73 9.73 9.73 2.034 0 3.923-.627 5.487-1.698l6.238 6.238 2.354-2.354zm-20.955-11.916c0-3.792 3.085-6.877 6.877-6.877s6.877 3.085 6.877 6.877-3.085 6.877-6.877 6.877c-3.793 0-6.877-3.085-6.877-6.877z"/></svg>
             </div>
           </div>
@@ -117,7 +146,7 @@
   .window__toolbar { height: 36px; background-color: #f5f6f7; color: #585c61; position: absolute; bottom: 0; padding: 5px 16px; width: 100%; box-sizing: border-box; box-shadow: inset 0 1px #e7ebee; }
   .window__toolbar_white { background-color: white; box-shadow: inset 0 1px #e7ebee, inset 1px 0 0 #ecf3f4; }
   .window__toolbar__panel { display: flex; justify-content: space-between; align-items: center; }
-  .window__toolbar__panel__item { display: flex; align-items: center; font-weight: 400; padding: 3px 4px 5px; }
+  .window__toolbar__panel__item { user-select: none; display: flex; align-items: center; font-weight: 400; padding: 3px 4px 5px; }
   .window__toolbar__panel__item__icon { margin: 4px 6px 3px; }
   .window__toolbar__panel__item:hover { box-shadow: inset 0 0 0 -1px #dcdfe2, inset 0 0 0 1px #dcdfe2; border-radius: 4px; }
   .window__toolbar__panel__item:active { background-color: #dfe3e8; box-shadow: none; border-radius: 4px; }
@@ -127,32 +156,39 @@
   .window__toolbar__panel__item_center { min-width: 10vw; justify-content: center; }
   .window__toolbar__panel__item_center:hover { box-shadow: inset 0 0 0 -1px #ededed, inset 0 0 0 1px #ededed; }
   .window__toolbar__panel__item_center:active { background-color: #ebebeb; box-shadow: none; border-radius: 4px; }
+
+  .window__new-project { font-weight: 500; position: absolute; bottom: 35px; color: white; padding: 7px; box-shadow: 0 5px 10px 0 rgba(0,0,0,.2); background-color: #2b323b; border-radius: 8px; left: 10px; width: 300px; z-index: 100000; }
+  .window__new-project__item { user-select: none; padding: 5px; border-radius: 3px; display: grid; grid-template-columns: 18px 1fr; gap: 4px; }
+  .window__new-project__item:hover { background-color: #5d9cf5; }
+  .window__new-project__item:hover .window__new-project__item__desc { color: rgba(255,255,255,.8); }
+  .window__new-project__item__icon { padding: 2px; }
+  .window__new-project__item__desc { color: rgba(255,255,255,.4); margin-top: 2px; }
+  .window__new-project__item__ruler { height: 1px; width: 100%; background: rgba(255,255,255,.2); margin: 5px 0; }
 </style>
 
 <script>
   import draggable from "vuedraggable"
   import { sortBy, findIndex } from "lodash"
+  import BaseIcon from '@/components/BaseIcon'
 
   export default {
-    components: { draggable, },
+    components: { draggable, BaseIcon, },
     data: function() {
       return {
         dragging: null,
+        windowProject: null,
       }
     },
     computed: {
       projectList() {
-        return sortBy(this.$store.state.entityList.filter(entity => entity.type == 'project' && !entity.areaId), ['order'])
+        return sortBy(this.$store.state.entityList.filter(entity => (entity.type === 'project') && !entity.areaId), ['order'])
       },
       areaList() {
         return sortBy(
           this.$store.state.entityList
             .filter(entity => entity.type == 'area')
-            .map(area => ({...area, children: sortBy(this.$store.state.entityList.filter(project => project.areaId == area.id), ['order'])})),
+            .map(area => ({...area, children: sortBy(this.$store.state.entityList.filter(entity => entity.type === 'project' && entity.areaId == area.id), ['order'])})),
         ['order'])
-      },
-      projectInAreaList() {
-        return (areaId) => sortBy(this.$store.state.entityList.filter(entity => entity.type == 'project' && entity.areaId == areaId), ['order'])
       },
     },
     methods: {
@@ -167,17 +203,26 @@
         })
       },
       projectCreate() {
-        this.$store.dispatch('entityUpdate', {type: 'project'})
+        this.$store.dispatch('entityCreate', {type: 'project', name: 'New Project'})
+      },
+      areaCreate() {
+        this.$store.dispatch('entityCreate', {type: 'area', name: 'New Area'})
       },
       entityCreate(type) {
         const isTodo = type == 'todo'
         const isToday = this.$route.path.split('/')[1] == 'today'
+        const isInProject = this.$route.path.split('/')[1] == 'project'
+        const isInArea = this.$route.path.split('/')[1] == 'area'
         const inbox = this.$route.path.split('/')[1] == 'inbox'
+        const projectId = isInProject && this.$route.path.split('/')[2]
+        const areaId = isInArea && this.$route.path.split('/')[2]
         const date = (isTodo && isToday) ? new Date().toISOString().slice(0,10) : null
         this.$store.dispatch('entityCreate', {
           type,
           date,
           inbox,
+          projectId,
+          areaId,
         })
       },
     },
