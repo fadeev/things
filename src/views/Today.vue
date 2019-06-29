@@ -17,6 +17,7 @@
           <Todo :class="['area__todo-list__item', {'area__todo-list__item_expanded': expanded == todo.id}]"
                 v-for="todo in todoList"
                 :value="todo"
+                :showTodayIcon="false"
                 :key="todo.id"
                 @select="select"
                 @expand="expand"

@@ -2,122 +2,82 @@
   <div>
     <div :class="['todo__list__item']">
       <div :class="['todo__list__main', {selected, 'todo__list__main_expanded': expanded}]"
-          @click.stop="select"
-          @dblclick.stop="expand">
+           @click.stop="select"
+           @dblclick.stop="expand">
         <div class="todo__calendar">
           <base-icon fill="#bdc0c2" width="12" height="12" image="calendar-4-svg"/>
         </div>
         <div class="todo__list__main__title">
           <div class="todo__main__title__checkbox">
             <base-icon image="checkbox-11-svg"
-                      :fill="selected && !expanded ? '#a1b3cc' : '#c8cacd'"
-                      width="11"
-                      height="11"/>
+                       :fill="selected && !expanded ? '#a1b3cc' : '#c8cacd'"
+                       width="11"
+                       height="11"/>
           </div>
           <base-icon class="todo__list__main__title__icon"
-                    v-if="todo.date == todayDate && !expanded"
-                    fill="#f1ca00"
-                    image="star-3-svg"
-                    style="margin-left: 0;"
-                    width="13"
-                    height="13"/>
+                     v-if="todo.date == todayDate && !expanded && showTodayIcon"
+                     fill="#f1ca00"
+                     image="star-3-svg"
+                     style="margin-left: 0;"
+                     width="13"
+                     height="13"/>
           <div tabindex="0"
-              class="todo__list__main__title__text"
-              :contenteditable="expanded"
-              placeholder="New Todo"
-              @blur="todo.name = $event.target.innerText">
+               class="todo__list__main__title__text"
+               :contenteditable="expanded"
+               placeholder="New Todo"
+               @blur="todo.name = $event.target.innerText">
             {{!todo.name || todo.name == '' ? 'New Todo' : todo.name}}
           </div>
           <base-icon class="todo__list__main__title__icon"
-                    v-if="todo.notes && !expanded"
-                    :fill="selected && !expanded ? '#a1b3cc' : '#c8cacd'"
-                    image="file-3-svg"
-                    width="10"
-                    height="10"/>
+                     v-if="todo.notes && !expanded"
+                     :fill="selected && !expanded ? '#a1b3cc' : '#c8cacd'"
+                     image="file-3-svg"
+                     width="10"
+                     height="10"/>
           <base-icon class="todo__list__main__title__icon"
-                    v-if="todo.checklist && !expanded"
-                    :fill="selected && !expanded ? '#a1b3cc' : '#c8cacd'"
-                    image="menu-2-svg"
-                    width="10"
-                    height="10"/>
+                     v-if="todo.checklist && !expanded"
+                     :fill="selected && !expanded ? '#a1b3cc' : '#c8cacd'"
+                     image="menu-2-svg"
+                     width="10"
+                     height="10"/>
           <div class="todo__list__main__title__tag-list" v-if="!expanded">
             <div class="todo__list__main__title__tag-list__item" v-for="tag in tagListLocal" :key="tag.id">
               {{tag.name}}
             </div>
           </div>
           <base-icon class="todo__list__main__title__icon"
-                    v-if="todo.deadline && !expanded"
-                    :fill="selected && !expanded ? '#a1b3cc' : '#c8cacd'"
-                    image="flag-7-svg"
-                    style="margin-left: auto;"
-                    width="12"
-                    height="12"/>
+                     v-if="todo.deadline && !expanded"
+                     :fill="selected && !expanded ? '#a1b3cc' : '#c8cacd'"
+                     image="flag-7-svg"
+                     style="margin-left: auto;"
+                     width="12"
+                     height="12"/>
         </div>
         <transition-expand>
           <div v-if="expanded">
-            <div class="todo__list__main__body">
-              <div class="todo__list__main__body__notes">
-                <textarea rows="2" placeholder="Notes" class="todo__textarea" v-model="todo.notes"></textarea>
-              </div>
-            </div>
+            <todo-notes class="todo__list__main__body" v-model="todo.notes"/>
             <transition name="slide">
-              <div class="todo__list__main__body todo__list__main__checklist"
-                  v-if="expanded && todo.checklist && todo.checklist.length > 0">
-                <div class="todo__list__main__body__checklist">
-                  <draggable force-fallback="true"
-                            delay="100"
-                            :value="todo.checklist"
-                            @input="checklistMoved($event)"
-                            animation="150"
-                            direction="vertical"
-                            handle=".todo__list__main__body__checklist__item__handle">
-                    <div class="todo__list__main__body__checklist__item"
-                        tabindex="0"
-                        v-for="(item, index) in todo.checklist"
-                        :key="item.id">
-                      <div v-if="!item.done"
-                          class="todo__list__main__body__checklist__item__icon"
-                          @click.stop="$set(item, 'done', true)">
-                        <base-icon fill="#1d63c3" width="10" height="10" image="circle-2-svg"/>
-                      </div>
-                      <div v-else class="todo__list__main__body__checklist__item__icon" @click.stop="$set(item, 'done', false)">
-                        <base-icon fill="#aaa" width="10" height="10" image="check-mark-15-svg"/>
-                      </div>
-                      <input class="todo__list__main__body__checklist__item__text"
-                            :style="{color: item.done ? '#aaa' : '#000'}"
-                            :ref="`checklist-${index}`"
-                            @keydown.backspace="checklistBackspace(item, $event, index)"
-                            @keyup.enter="checklistPush(index)"
-                            @keydown.down="checklistFocus(index+1, $event)"
-                            @keydown.up="checklistFocus(index-1, $event)"
-                            v-model="item.title">
-                      <div class="todo__list__main__body__checklist__item__handle" style="justify-self: end; margin-left: auto">
-                        <base-icon image="menu-thin-svg" fill="#777" width="12" height="12"/>
-                      </div>
-                    </div>
-                  </draggable>
-                </div>
-              </div>
+              <todo-checklist style="padding: 0 35px" v-model="todo.checklist"/>
             </transition>
             <transition name="slide">
               <div class="todo__list__main__body" v-if="expanded && todo.tagList && todo.tagList.length > 0">
                 <div class="todo__list__main__body__tag-list">
                   <div class="todo__list__main__body__tag-list__item"
-                      v-for="tag in todo.tagList.map(tag => find(tagList, ['id', tag]))"
-                      tabindex="0"
-                      @keydown.backspace="tagRemove(tag)"
-                      :key="tag.id">
+                       v-for="tag in todo.tagList.map(tag => find(tagList, ['id', tag]))"
+                       tabindex="0"
+                       @keydown.backspace="tagRemove(tag)"
+                       :key="tag.id">
                     {{tag.name}}
                   </div>
                   <div>
                     <input placeholder="Tag"
-                          ref="tag-input"
-                          class="todo__list__main__body__tag-list__input"
-                          type="text"
-                          v-model="tagSearch"
-                          @keyup.backspace="!$event.target.value ? todo.tagList.pop() : null"
-                          @keyup.enter="$event.target.value ? tagAdd({name: $event.target.value}) : null"
-                          @click.stop="mode = 'button-tags'">
+                           ref="tag-input"
+                           class="todo__list__main__body__tag-list__input"
+                           type="text"
+                           v-model="tagSearch"
+                           @keyup.backspace="!$event.target.value ? todo.tagList.pop() : null"
+                           @keyup.enter="$event.target.value ? tagAdd({name: $event.target.value}) : null"
+                           @click.stop="mode = 'button-tags'">
                     <transition name="fade">
                       <popup-tags v-if="mode == 'button-tags'"
                                   :value="tagListFiltered()"
@@ -132,25 +92,25 @@
                 <div class="todo__list__main__body__date">
                   <div class="todo__list__main__body__date__button" @click.stop="mode = 'button-date'">
                     <base-icon v-if="todo.date == todayDate && !todo.evening"
-                              image="star-3-svg"
-                              fill="#f1ca00"
-                              width="14"
-                              height="14"/>
+                               image="star-3-svg"
+                               fill="#f1ca00"
+                               width="14"
+                               height="14"/>
                     <base-icon v-if="todo.date == todayDate && todo.evening"
-                              fill="#a3bde2"
-                              width="14"
-                              height="14"
-                              image="weather-114-svg"/>
+                               fill="#a3bde2"
+                               width="14"
+                               height="14"
+                               image="weather-114-svg"/>
                     <base-icon v-if="todo.date && todo.date != todayDate && !todo.someday"
-                              fill="#fd306c"
-                              width="14"
-                              height="14"
-                              image="calendar-4-svg"/>
+                               fill="#fd306c"
+                               width="14"
+                               height="14"
+                               image="calendar-4-svg"/>
                     <base-icon v-if="todo.someday"
-                              fill="#b5a96a"
-                              width="14"
-                              height="14"
-                              image="archive-11-svg"/>
+                               fill="#b5a96a"
+                               width="14"
+                               height="14"
+                               image="archive-11-svg"/>
                     <div class="todo__list__main__body__date__text">
                       <div v-if="todo.date == todayDate && !todo.evening">Today</div>
                       <div v-if="todo.date == todayDate && todo.evening">This Evening</div>
@@ -306,40 +266,42 @@
   .fade-enter-active { transition: all .1s; transform-origin: top; }
   .fade-enter { transform: scale(.9); opacity: .9; }
   .fade-enter-to { transform: scale(1); opacity: 1; }
-
-  .todo__list__main__checklist { margin: 10px 0; padding-left: 24px; }
-  .todo__list__main__body__checklist__item { margin-left: 6px; outline: none; display: flex; border-top: 1px solid #e3e4e7; border-left: 1px solid transparent; border-bottom: 1px solid transparent; border-right: 1px solid transparent; align-items: center; padding: 6px; padding-left: 0; }
-  .todo__list__main__body__checklist__item:last-child { border-bottom: 1px solid #e3e4e7; }
-  .todo__list__main__body__checklist__item:focus-within { background-color: #f4f5f6; border-radius: 3px; margin-left: 0; padding-left: 6px; border-left: 1px solid #e3e4e7; border-right: 1px solid #e3e4e7; border-bottom: 1px solid #e3e4e7; }
-  .todo__list__main__body__checklist__item:focus-within + .todo__list__main__body__checklist__item { border-top: 1px solid transparent; }
-  .todo__list__main__body__checklist__item.sortable-chosen.sortable-drag { padding-left: 6px; border: 1px solid #c8ddfa; }
-  .todo__list__main__body__checklist__item.sortable-chosen { border-top: 1px solid #e3e4e7; border-left: 1px solid #e3e4e7; border-bottom: 1px solid #e3e4e7; border-right: 1px solid #e3e4e7; }
-  .todo__list__main__body__checklist__item.sortable-ghost { padding-left: 6px; border: 1px solid transparent; }
-  .todo__list__main__body__checklist__item.sortable-ghost { padding-left: 6px; margin-left: 0; }
-  .todo__list__main__body__checklist__item.sortable-ghost + .todo__list__main__body__checklist__item { border-top: 1px solid transparent; }
-  .todo__list__main__body__checklist__item__text { outline: none; width: 100%; }
-  .todo__list__main__body__checklist__item__handle { opacity: 0; }
-  .todo__list__main__body__checklist__item__handle:hover { opacity: 1; }
-  .todo__list__main__body__checklist__item:focus-within .todo__list__main__body__checklist__item__handle { opacity: 1; }
-  .todo__list__main__body__checklist__item.sortable-drag .todo__list__main__body__checklist__item__handle { opacity: 1; }
-  .todo__list__main__body__checklist__item__icon { margin-right: 10px; transition: all .2s; }
-  .todo__list__main__body__checklist__item__icon:active { transform: scale(1.1); }
 </style>
 
 <script>
+  import { range, chunk, flatten, filter, find, includes } from 'lodash'
+  import uuidv1 from 'uuid/v1'
+  import draggable from "vuedraggable"
   import TransitionExpand from '@/components/TransitionExpand.vue'
   import ResizableTextarea from '@/components/ResizableTextarea.vue'
   import PopupDate from '@/components/PopupDate.vue'
   import PopupTags from '@/components/PopupTags.vue'
   import PopupDeadline from '@/components/PopupDeadline.vue'
-  import { range, chunk, flatten, filter, find, includes } from 'lodash'
-  import uuidv1 from 'uuid/v1'
-  import draggable from "vuedraggable"
   import BaseIcon from '@/components/BaseIcon.vue'
+  import TodoNotes from '@/components/TodoNotes.vue'
+  import TodoChecklist from '@/components/TodoChecklist.vue'
 
   export default {
-    components: { ResizableTextarea, PopupDate, PopupTags, PopupDeadline, draggable, BaseIcon, TransitionExpand, },
-    props: ['value', 'selected', 'expanded'],
+    components: {
+      ResizableTextarea,
+      PopupDate,
+      PopupTags,
+      PopupDeadline,
+      draggable,
+      BaseIcon,
+      TransitionExpand,
+      TodoNotes,
+      TodoChecklist,
+    },
+    props: {
+      value: Object,
+      selected: Boolean,
+      expanded: Boolean,
+      showTodayIcon: {
+        type: Boolean,
+        default: true,
+      },
+    },
     data() {
       return {
         todo: this.value,
@@ -415,33 +377,33 @@
         this.$set(this.todo, 'checklist', [{title, id: uuidv1()}])
         this.$nextTick(() => this.$refs[`checklist-${0}`][0].focus())
       },
-      checklistPush(index) {
-        this.todo.checklist.splice(index+1, 0, {id: uuidv1()})
-        this.$nextTick(() => this.$refs[`checklist-${index+1}`][0].focus())
-      },
-      checklistFocus(index, event) {
-        const cursorPosition = event.target.selectionStart
-        console.log(event)
-        event.preventDefault()
-        const sibling = this.$refs[`checklist-${index}`]
-        if (sibling && sibling[0]) {
-          sibling[0].focus()
-          sibling[0].selectionStart = cursorPosition
-          sibling[0].selectionEnd = cursorPosition
-        }
-      },
-      checklistBackspace(item, event, index) {
-        const prevChecklist = this.$refs[`checklist-${index-1}`] && this.$refs[`checklist-${index-1}`][0]
-        if (event.target.value == "") {
-          this.$set(this.todo, 'checklist', this.todo.checklist.filter(c => c.id != item.id))
-          prevChecklist && prevChecklist.focus()
-          event.preventDefault()
+      // checklistPush(index) {
+      //   this.todo.checklist.splice(index+1, 0, {id: uuidv1()})
+      //   this.$nextTick(() => this.$refs[`checklist-${index+1}`][0].focus())
+      // },
+      // checklistFocus(index, event) {
+      //   const cursorPosition = event.target.selectionStart
+      //   console.log(event)
+      //   event.preventDefault()
+      //   const sibling = this.$refs[`checklist-${index}`]
+      //   if (sibling && sibling[0]) {
+      //     sibling[0].focus()
+      //     sibling[0].selectionStart = cursorPosition
+      //     sibling[0].selectionEnd = cursorPosition
+      //   }
+      // },
+      // checklistBackspace(item, event, index) {
+      //   const prevChecklist = this.$refs[`checklist-${index-1}`] && this.$refs[`checklist-${index-1}`][0]
+      //   if (event.target.value == "") {
+      //     this.$set(this.todo, 'checklist', this.todo.checklist.filter(c => c.id != item.id))
+      //     prevChecklist && prevChecklist.focus()
+      //     event.preventDefault()
 
-        }
-      },
-      checklistMoved(list) {
-        this.todo.checklist = list
-      },
+      //   }
+      // },
+      // checklistMoved(list) {
+      //   this.todo.checklist = list
+      // },
       toolbarClick(mode) {
         const input = this.$refs[mode]
         if (input) input.focus()
